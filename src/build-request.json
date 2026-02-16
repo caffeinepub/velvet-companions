@@ -1,54 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Set commission-per-booking to 30%",
+  "title": "Production launch readiness (“Go live now”)",
   "projectName": "Velvet Companions",
-  "priority": "normal",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-23",
-      "text": "Set the platform monetization configuration to use the commission-per-booking model with a 30% commission rate, so that platform earnings increase by 30% of the booking amount when an admin marks a booking request as completed.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "I want to Charge a commission per booking. i want 30% charge from each booking"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The backend default `activeMonetizationConfig` is `#commission` with `commissionRate = 30` (percent).",
-        "When an admin updates a booking request status to `#completed` and the active model is commission, the platform earnings increase by `(avgPrice * 30) / 100`, where `avgPrice = (priceRange.min + priceRange.max) / 2` for the booked companion profile.",
-        "`getActiveMonetizationConfig()` returns `model = #commission` and `commissionRate = 30` for admins on a fresh deploy (no prior config updates)."
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "text": "Ensure the admin UI reflects the 30% commission setting by showing the current commission rate from the backend monetization config in the Monetization Settings page and the Earnings Dashboard page.",
+      "id": "REQ-28",
+      "text": "Complete and enable the commission/ban compliance gate UI so the app is safe to launch: implement `frontend/src/components/compliance/CommissionComplianceGate.tsx` (currently empty) as a blocking gate that (1) detects whether the signed-in user is banned, and (2) detects whether the signed-in user has any pending commission-due items, and blocks the rest of the app until the user resolves the compliance prompt.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "i want 30% charge from each booking"
+          "Go live now"
         ]
       },
       "acceptanceCriteria": [
-        "On the Admin Monetization Settings page, when the active model is Commission, the Commission Rate input is pre-filled with the backend value (30 on a fresh deploy).",
-        "On the Admin Earnings Dashboard page, when the active model is Commission, the label shows \"30% per booking\" (or the current configured percent if changed later)."
+        "`frontend/src/components/compliance/CommissionComplianceGate.tsx` contains a real React component (not empty) and renders without runtime errors.",
+        "When the backend indicates the caller is banned, the UI shows a blocking screen in English explaining the permanent ban and prevents use of the app.",
+        "When the backend indicates the caller has one or more pending commission-due items, the UI shows a blocking compliance prompt listing the outstanding items and requires an explicit user action to proceed.",
+        "The blocking compliance UI prevents interaction with underlying routes/pages until resolved (or the user logs out)."
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "text": "Wire the commission/ban compliance gate into the application shell so it is enforced across all authenticated user experiences (e.g., My Profile, Messages, booking flows), while leaving public browsing and legal pages accessible.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Go live now"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The compliance gate is mounted from the main routing/layout layer (e.g., `frontend/src/App.tsx` layout) so it applies consistently across protected areas.",
+        "Public routes such as Landing, Browse, Profile view, Terms, and Privacy remain accessible as designed (subject to the existing Age Gate where applicable).",
+        "Authenticated routes (e.g., `/my-profile`, `/messages`, message conversation pages) are blocked when banned or commission-due is pending."
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "text": "Verify backend support for launch-critical compliance checks: ensure the backend exposes stable APIs for (a) checking whether the caller is banned and (b) fetching the caller’s commission-due items, and that these APIs are used by the frontend compliance gate.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Go live now"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend has query methods that allow the frontend to determine whether the caller is banned and retrieve the caller’s commission-due records (pending vs paid).",
+        "These methods enforce the existing ban policy consistently (banned callers should be prevented from using authenticated features) while still allowing the compliance UI to detect and display the correct state.",
+        "The frontend compliance gate uses these backend APIs via the existing React Query/actor patterns (no hardcoded mock states)."
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "text": "Perform a launch readiness pass to ensure there are no placeholder components, broken routes, or obvious runtime errors in the deployed build, focusing on the compliance/ban flow and core user journeys (browse → view profile → request booking; user profile creation/editing; messaging; admin booking completion creating commission due).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Go live now"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No empty/placeholder components remain in user-critical paths (specifically the compliance gate).",
+        "Key routes in `frontend/src/App.tsx` render successfully and navigation works without console errors.",
+        "Admin marking a booking as `#completed` under the commission model results in a commission-due record for the requester, and the requester is then blocked by the compliance gate until they confirm payment (or they choose non-payment and are banned)."
       ]
     }
   ],
   "constraints": [
-    "Keep all Motoko backend logic within the existing single actor in backend/main.mo.",
-    "Do not modify files under frontend/src/components/ui or any frontend immutable paths listed in SYSTEM_CONTEXT.",
-    "Use English for all user-facing text."
+    "Use English for all user-facing text.",
+    "Do not edit any files under the frontend immutable paths list (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and `frontend/src/components/ui`).",
+    "Backend must remain a single Motoko actor with all logic in `backend/main.mo`; only add `backend/migration.mo` if a stable-state upgrade is required."
   ],
   "nonGoals": [
-    "Integrating real payment processing or collecting actual commission payments.",
-    "Adding new monetization models beyond those already implemented.",
-    "Changing booking request workflow or statuses beyond applying the configured commission rate."
+    "Integrating real payment processing (e.g., Stripe) or bank payouts.",
+    "Adding new monetization models beyond what already exists.",
+    "Adding real-time messaging (WebSockets) or external databases/services."
   ],
   "imageRequirements": {
     "required": [],

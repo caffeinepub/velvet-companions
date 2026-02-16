@@ -1,13 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Set the platform’s commission-per-booking monetization to 30% and ensure admin screens reflect the configured commission rate.
+**Goal:** Make the app safe to launch by enforcing a blocking commission/ban compliance gate across authenticated user experiences and verifying end-to-end readiness of the compliance flow.
 
 **Planned changes:**
-- Update backend default monetization config so the active model is commission with `commissionRate = 30` (percent) on fresh deploys.
-- When an admin marks a booking request as `#completed` and the active model is commission, increase platform earnings by `(avgPrice * 30) / 100`, where `avgPrice = (priceRange.min + priceRange.max) / 2` for the booked companion profile.
-- Update admin UI to read and display the commission rate from the backend config:
-  - Pre-fill the Commission Rate input on the Monetization Settings page with the backend value (30 on fresh deploy).
-  - Show the commission label on the Earnings Dashboard as “30% per booking” (or the currently configured percent).
+- Implement `frontend/src/components/compliance/CommissionComplianceGate.tsx` as a real blocking gate that checks (via backend APIs) whether the signed-in user is banned and/or has pending commission-due items, and displays the appropriate English blocking UI.
+- Mount the compliance gate from the main app routing/layout so it consistently protects authenticated routes (e.g., My Profile, Messages, booking flows) while leaving public browsing and legal pages accessible (subject to the existing Age Gate where applicable).
+- Ensure backend APIs exist and are used (no mock state) to (a) determine whether the caller is banned and (b) fetch the caller’s commission-due items with pending vs paid status.
+- Run a launch readiness pass focused on removing placeholders and preventing obvious runtime errors/broken routes in core journeys, including the admin booking completion → commission-due creation → requester blocked-until-resolved flow.
 
-**User-visible outcome:** Admins see a 30% commission setting in Monetization Settings and Earnings Dashboard, and platform earnings increase by 30% of the booking amount when a booking is marked completed.
+**User-visible outcome:** Signed-in users who are banned or who have unpaid commission-due items are blocked from using authenticated parts of the app until they resolve the compliance prompt (or log out), while public pages remain accessible and core routes work without runtime errors.

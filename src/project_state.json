@@ -1,9 +1,10 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 11,
+  "projectStateVersion": 15,
   "summary": "Shift scope to a user-generated companion marketplace where users can create their own profiles, chat freely with matches, and pay a one-time ₹10 fee to create a profile.",
   "architectural_notes": [
-    "Monetization decision: use commission-per-booking model with commissionRate = 30% as the active monetization configuration."
+    "Monetization decision: use commission-per-booking model with commissionRate = 30% as the active monetization configuration.",
+    "Policy decision: if a user fails to pay the required commission under the active monetization model, the platform should permanently ban that account/principal."
   ],
   "known_issues": [],
   "isFixRequest": false,
@@ -175,6 +176,38 @@
         "REQ-24"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-to-detect-commission-due-status-and-ban-status-for-the-signed-in-user-and-present-a-blocking-compliance-ui-show-outstanding-commission-items-and-require-the-user-to-confirm-payment-if-the-user-indicates-non-payment-show-a-permanent-ban-message-and-prevent-further-app-usage",
+      "title": "Update the frontend to detect commission-due status and ban status for the signed-in user and present a blocking compliance UI: show outstanding commission items and require the user to confirm payment; if the user indicates non-payment, show a permanent-ban message and prevent further app usage.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-complete-and-enable-the-commission-ban-compliance-gate-ui-so-the-app-is-safe-to-launch-implement-frontend-src-components-compliance-commissioncompliancegate-tsx-currently-empty-as-a-blocking-gate-that-1-detects-whether-the-signed-in-user-is-banned-and-2-detects-whether-the-signed-in-user-has-any-pending-commission-due-items-and-blocks-the-rest-of-the-app-until-the-user-resolves-the-compliance-prompt",
+      "title": "Complete and enable the commission/ban compliance gate UI so the app is safe to launch: implement `frontend/src/components/compliance/CommissionComplianceGate.tsx` (currently empty) as a blocking gate that (1) detects whether the signed-in user is banned, and (2) detects whether the signed-in user has any pending commission-due items, and blocks the rest of the app until the user resolves the compliance prompt.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-commission-ban-compliance-gate-into-the-application-shell-so-it-is-enforced-across-all-authenticated-user-experiences-e-g-my-profile-messages-booking-flows-while-leaving-public-browsing-and-legal-pages-accessible",
+      "title": "Wire the commission/ban compliance gate into the application shell so it is enforced across all authenticated user experiences (e.g., My Profile, Messages, booking flows), while leaving public browsing and legal pages accessible.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-perform-a-launch-readiness-pass-to-ensure-there-are-no-placeholder-components-broken-routes-or-obvious-runtime-errors-in-the-deployed-build-focusing-on-the-compliance-ban-flow-and-core-user-journeys-browse-view-profile-request-booking-user-profile-creation-editing-messaging-admin-booking-completion-creating-commission-due",
+      "title": "Perform a launch readiness pass to ensure there are no placeholder components, broken routes, or obvious runtime errors in the deployed build, focusing on the compliance/ban flow and core user journeys (browse → view profile → request booking; user profile creation/editing; messaging; admin booking completion creating commission due).",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -247,6 +280,36 @@
       "summary": "Set the platform monetization configuration to use the commission-per-booking model with a 30% commission rate, so that platform earnings increase by 30% of the booking amount when an admin marks a booking request as completed.",
       "reqIds": [
         "REQ-23"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Enforce commission compliance by permanently banning users/accounts that do not pay the required commission.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Implement persistent, permanent account bans in the Motoko backend and enforce them across all authenticated user actions (profiles, bookings, and messaging).",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add backend commission-compliance tracking for the commission-per-booking monetization model: when an admin marks a booking as #completed under the #commission model, create a commission-due record for the booking requester, and require a user confirmation call to mark that commission as paid; if the user indicates they did not pay, permanently ban the user.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Verify backend support for launch-critical compliance checks: ensure the backend exposes stable APIs for (a) checking whether the caller is banned and (b) fetching the caller’s commission-due items, and that these APIs are used by the frontend compliance gate.",
+      "reqIds": [
+        "REQ-30"
       ],
       "status": "pending"
     }

@@ -18,16 +18,6 @@ export interface Rating {
     reliability: bigint;
     professionalism: bigint;
 }
-export interface Message {
-    id: string;
-    status: Variant_pending_rejected_accepted;
-    content: string;
-    sender: Principal;
-    messageType: Type;
-    timestamp: Time;
-    bookingRequestId?: string;
-    receiver: Principal;
-}
 export interface Config {
     leadFee?: bigint;
     model: Model;
@@ -51,11 +41,6 @@ export interface Profile {
     };
     category: string;
 }
-export interface UserProfile {
-    name: string;
-    email?: string;
-    phoneNumber?: string;
-}
 export interface Request {
     id: string;
     status: Status;
@@ -64,6 +49,27 @@ export interface Request {
     notes: string;
     requestTime: Time;
     requesterId: Principal;
+}
+export interface Message {
+    id: string;
+    status: Variant_pending_rejected_accepted;
+    content: string;
+    sender: Principal;
+    messageType: Type;
+    timestamp: Time;
+    bookingRequestId?: string;
+    receiver: Principal;
+}
+export interface CommissionDue {
+    status: Variant_pending_paid;
+    bookingId: string;
+    amount: bigint;
+    requesterId: Principal;
+}
+export interface UserProfile {
+    name: string;
+    email?: string;
+    phoneNumber?: string;
 }
 export enum Model {
     leadFee = "leadFee",
@@ -93,21 +99,28 @@ export enum UserRole {
     user = "user",
     guest = "guest"
 }
+export enum Variant_pending_paid {
+    pending = "pending",
+    paid = "paid"
+}
 export enum Variant_pending_rejected_accepted {
     pending = "pending",
     rejected = "rejected",
     accepted = "accepted"
 }
 export interface backendInterface {
+    adminRevertBan(user: Principal): Promise<void>;
     adminUpdateProfileStatus(profileId: string, status: Status__1): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     canUserAccessMessages(user1: Principal, user2: Principal): Promise<boolean>;
+    confirmCommissionPayment(bookingId: string, paid: boolean): Promise<void>;
     createOrUpdateCallerCompanionProfile(profile: Profile, hasPaidFee: boolean): Promise<void>;
     createOrUpdateProfile(profile: Profile): Promise<void>;
     getActiveMonetizationConfig(): Promise<Config>;
     getActiveProfiles(): Promise<Array<Profile>>;
     getAllBookings(): Promise<Array<Request>>;
     getAllProfiles(): Promise<Array<Profile>>;
+    getCallerCommissionDues(): Promise<Array<CommissionDue> | null>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getMessagesByParticipants(sender: Principal, receiver: Principal): Promise<Array<Message>>;
@@ -116,7 +129,9 @@ export interface backendInterface {
     getUserBookings(userId: Principal): Promise<Array<Request>>;
     getUserMessageThreads(user: Principal): Promise<Array<MessageThreadInfo>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    isBanned(user: Principal): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
+    isCallerBanned(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     sendMessage(message: Message): Promise<void>;
     submitBookingRequest(request: Request): Promise<void>;

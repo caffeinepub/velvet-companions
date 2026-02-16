@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-admin-ui-reflects-the-30-commission-setting-by-showing-the-current-commission-rate-from-the-backend-monetization-config-in-the-monetization-settings-page-and-the-earnings-dashboard-page",
-      "featureTitle": "Ensure the admin UI reflects the 30% commission setting by showing the current commission rate from the backend monetization config in the Monetization Settings page and the Earnings Dashboard page.",
+      "featureId": "feature-complete-and-enable-the-commission-ban-compliance-gate-ui-so-the-app-is-safe-to-launch-implement-frontend-src-components-compliance-commissioncompliancegate-tsx-currently-empty-as-a-blocking-gate-that-1-detects-whether-the-signed-in-user-is-banned-and-2-detects-whether-the-signed-in-user-has-any-pending-commission-due-items-and-blocks-the-rest-of-the-app-until-the-user-resolves-the-compliance-prompt",
+      "featureTitle": "Complete and enable the commission/ban compliance gate UI so the app is safe to launch: implement `frontend/src/components/compliance/CommissionComplianceGate.tsx` (currently empty) as a blocking gate that (1) detects whether the signed-in user is banned, and (2) detects whether the signed-in user has any pending commission-due items, and blocks the rest of the app until the user resolves the compliance prompt.",
       "files": [
-        "frontend/src/pages/admin/AdminEarningsPage.tsx",
-        "frontend/src/pages/admin/AdminMonetizationSettingsPage.tsx"
+        "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,7 +17,47 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-24"
+        "REQ-28"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-wire-the-commission-ban-compliance-gate-into-the-application-shell-so-it-is-enforced-across-all-authenticated-user-experiences-e-g-my-profile-messages-booking-flows-while-leaving-public-browsing-and-legal-pages-accessible",
+      "featureTitle": "Wire the commission/ban compliance gate into the application shell so it is enforced across all authenticated user experiences (e.g., My Profile, Messages, booking flows), while leaving public browsing and legal pages accessible.",
+      "files": [
+        "frontend/src/App.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-29"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-perform-a-launch-readiness-pass-to-ensure-there-are-no-placeholder-components-broken-routes-or-obvious-runtime-errors-in-the-deployed-build-focusing-on-the-compliance-ban-flow-and-core-user-journeys-browse-view-profile-request-booking-user-profile-creation-editing-messaging-admin-booking-completion-creating-commission-due",
+      "featureTitle": "Perform a launch readiness pass to ensure there are no placeholder components, broken routes, or obvious runtime errors in the deployed build, focusing on the compliance/ban flow and core user journeys (browse → view profile → request booking; user profile creation/editing; messaging; admin booking completion creating commission due).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+        "frontend/src/lib/errorFormatting.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-31"
       ],
       "confidence": "high"
     }

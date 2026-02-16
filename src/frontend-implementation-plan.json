@@ -1,25 +1,69 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin UI: display 30% commission rate from monetization config",
+  "title": "Velvet Companions — Launch readiness compliance gate (frontend)",
   "requirements": [
     {
-      "id": "REQ-24",
-      "summary": "Show the active commission rate from the backend monetization config in Admin Monetization Settings and Admin Earnings Dashboard when the Commission model is active.",
+      "id": "REQ-28",
+      "summary": "Implement a blocking Commission/Ban compliance gate UI that detects banned users and pending commission-due items for the signed-in user.",
       "acceptanceCriteria": [
-        "On the Admin Monetization Settings page, when the active model is Commission, the Commission Rate input is pre-filled with the backend value (30 on a fresh deploy).",
-        "On the Admin Earnings Dashboard page, when the active model is Commission, the label shows \"30% per booking\" (or the current configured percent if changed later)."
+        "`frontend/src/components/compliance/CommissionComplianceGate.tsx` contains a real React component (not empty) and renders without runtime errors.",
+        "When the backend indicates the caller is banned, the UI shows a blocking screen in English explaining the permanent ban and prevents use of the app.",
+        "When the backend indicates the caller has one or more pending commission-due items, the UI shows a blocking compliance prompt listing the outstanding items and requires an explicit user action to proceed.",
+        "The blocking compliance UI prevents interaction with underlying routes/pages until resolved (or the user logs out)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/admin/AdminMonetizationSettingsPage.tsx",
+          "path": "frontend/src/components/compliance/CommissionComplianceGate.tsx",
           "operation": "modify",
-          "description": "Ensure the Commission Rate input is reliably pre-filled from the backend monetization config when model is Commission by treating 0 as a valid value (avoid truthy checks on bigint fields) and keeping the existing config-to-form hydration behavior aligned with the backend-provided commissionRate (30 on fresh deploy)."
+          "description": "Implement the CommissionComplianceGate React component as a blocking wrapper (accepts children) that, when the user is authenticated, checks backend compliance state using the existing actor + React Query patterns from the authorization component (banned status and commission-due list). Render a full-viewport blocking UI for: (a) banned callers (permanent ban explanation + sign out action), and (b) pending commission-due items (list items with amount/bookingId/status and require explicit user action such as confirming payment or choosing non-payment). Ensure blocking UI prevents interaction with underlying content (overlay + no underlying render or pointer events). Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/admin/AdminEarningsPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure the Active Model label renders the commission rate as \"<rate>% per booking\" whenever the active model is Commission, including when the configured rate is 0 (avoid truthy checks on bigint fields) so it always reflects the current backend monetization config value."
+          "description": "Add React Query hooks/mutations used by CommissionComplianceGate to call existing backend capabilities via useActor: a query for caller ban state, a query for caller commission-due items, and a mutation to confirm commission payment choice (paid vs not paid) that invalidates relevant compliance queries. Ensure hooks are disabled until the actor is ready and return stable loading states. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "summary": "Mount the compliance gate from the routing/layout layer so it is enforced for authenticated experiences while public browsing/legal routes remain accessible.",
+      "acceptanceCriteria": [
+        "The compliance gate is mounted from the main routing/layout layer (e.g., `frontend/src/App.tsx` layout) so it applies consistently across protected areas.",
+        "Public routes such as Landing, Browse, Profile view, Terms, and Privacy remain accessible as designed (subject to the existing Age Gate where applicable).",
+        "Authenticated routes (e.g., `/my-profile`, `/messages`, message conversation pages) are blocked when banned or commission-due is pending."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire CommissionComplianceGate into the application shell (Layout/root routing layer) so it wraps routed content consistently. Configure the gate to be non-blocking for unauthenticated users so public routes (Landing/Browse/Profile/Terms/Privacy) remain accessible, while authenticated routes wrapped by RequireAuth/RequireAdmin are blocked when banned or commissions are pending. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "summary": "Frontend launch-readiness pass focusing on compliance/ban flow and core navigation stability (no placeholder UI or obvious runtime errors).",
+      "acceptanceCriteria": [
+        "No empty/placeholder components remain in user-critical paths (specifically the compliance gate).",
+        "Key routes in `frontend/src/App.tsx` render successfully and navigation works without console errors.",
+        "Admin marking a booking as `#completed` under the commission model results in a commission-due record for the requester, and the requester is then blocked by the compliance gate until they confirm payment (or they choose non-payment and are banned)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+          "operation": "modify",
+          "description": "Harden the compliance gate UX for production readiness: add robust loading and error states (English text) that avoid blank screens, ensure it cannot crash on null/empty commission lists, and ensure the user can always sign out from a blocked state using the existing authorization component’s frontend auth patterns (clearing cached queries on logout). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Validate route composition with the mounted compliance gate: ensure protected routes remain behind RequireAuth/RequireAdmin and Age Gate behavior is unchanged for public browsing; confirm no route renders a broken layout when the gate is blocking. Adjust layout wiring if needed to avoid double-modals or interaction leaks. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/lib/errorFormatting.ts",
+          "operation": "modify",
+          "description": "Extend user-friendly error formatting for compliance-related failures (ban/compliance/commission confirmation) so unexpected backend errors are surfaced in English without breaking core journeys (messaging, booking request, profile editing). Verify the component's usage instructions before implementing."
         }
       ]
     }

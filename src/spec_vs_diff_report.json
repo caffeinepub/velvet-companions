@@ -1,51 +1,46 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T22:17:57.332Z",
-  "summary": "REQ-23 is partially implemented: the backend default active monetization config is set to commission with a 30% rate, and a migration is added to force this config. However, the diff summary does not provide evidence that platform earnings increase by 30% of avgPrice when a booking is marked #completed, nor that getActiveMonetizationConfig() returns the expected values for admins on fresh deploy. REQ-24 is partially evidenced: the Monetization Settings page now pre-fills inputs from the backend config, but the Earnings Dashboard “30% per booking” label change is not visible in the truncated diff.",
+  "generatedAt": "2026-02-16T22:39:00.243Z",
+  "summary": "Frontend compliance gate UI was implemented and mounted at the App layout level, with React Query hooks added for ban status, commissions due, and confirming commission payment. However, the diff does not provide sufficient evidence that the backend implements the required stable compliance APIs or that the booking completion flow reliably creates commission-due records and enforces bans as required for launch readiness.",
   "missing_requirements": [
     {
-      "id": "REQ-23",
-      "requirement": "When an admin updates a booking request status to #completed and the active model is commission, platform earnings increase by (avgPrice * 30) / 100 where avgPrice = (priceRange.min + priceRange.max) / 2 for the booked companion profile.",
-      "reason": "backend/main.mo is truncated before the booking status update/completion logic; no shown code updates platformEarnings on completion using the specified avgPrice formula and commissionRate.",
+      "id": "REQ-30",
+      "requirement": "Backend exposes stable query APIs for checking whether the caller is banned and fetching the caller’s commission-due items (pending vs paid), and these are used by the frontend compliance gate (no mocked state).",
+      "reason": "The frontend calls actor methods (isCallerBanned, getCallerCommissionDues, confirmCommissionPayment), but backend/main.mo is truncated and does not show these methods or their ban-policy enforcement, so backend support cannot be verified from the provided diff evidence.",
       "evidence": [
-        "backend/main.mo (truncated in diff summary)"
+        "backend/main.mo (truncated)",
+        "frontend/src/hooks/useQueries.ts"
       ]
     },
     {
-      "id": "REQ-23",
-      "requirement": "getActiveMonetizationConfig() returns model = #commission and commissionRate = 30 for admins on a fresh deploy (no prior config updates).",
-      "reason": "The diff shows the default variable initialization and a migration setting activeMonetizationConfig, but does not show the getActiveMonetizationConfig() implementation/return behavior or admin gating.",
+      "id": "REQ-31",
+      "requirement": "Launch readiness pass ensuring no placeholder components/broken routes/runtime errors, including that admin marking a booking as #completed under commission model creates a commission-due record and blocks requester until payment confirmed or user is banned.",
+      "reason": "While the compliance gate component is no longer empty and is wired into App.tsx, the diff does not include evidence of the end-to-end booking completion → commission due creation → requester blocked flow, nor evidence of route/runtime error remediation beyond the compliance gate additions.",
       "evidence": [
-        "backend/main.mo (truncated in diff summary)"
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "requirement": "On the Admin Earnings Dashboard page, when the active model is Commission, the label shows \"30% per booking\" (or the current configured percent if changed later).",
-      "reason": "AdminEarningsPage.tsx is truncated before the rendered Active Model label content; no explicit evidence that it displays the commission percent text.",
-      "evidence": [
-        "frontend/src/pages/admin/AdminEarningsPage.tsx (truncated in diff summary)"
+        "backend/main.mo (truncated)",
+        "frontend/src/components/compliance/CommissionComplianceGate.tsx (truncated)",
+        "frontend/src/App.tsx (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added a backend migration module and wired the actor to run migrations (with migration = Migration.run), forcing activeMonetizationConfig via migration.",
-      "reason": "The BuildRequest only asked to set commission-per-booking to 30%; it did not request introducing a migration system/new Motoko module, and this may conflict with the constraint to keep backend logic within backend/main.mo.",
+      "description": "Added generalized user-friendly error formatting utility with special handling for ban/commission/authorization/fee errors.",
+      "reason": "BuildRequest focuses on implementing and wiring the compliance gate and verifying backend compliance APIs; adding a broad error formatting utility is not explicitly requested as a requirement.",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo"
+        "frontend/src/lib/errorFormatting.ts"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.64,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/pages/admin/AdminEarningsPage.tsx",
-    "frontend/src/pages/admin/AdminMonetizationSettingsPage.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/errorFormatting.ts",
     "project_state.json"
   ]
 }

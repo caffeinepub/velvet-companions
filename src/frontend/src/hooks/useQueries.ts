@@ -1,12 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Profile, Request, UserProfile, Status, Status__1, Config, Message, MessageThreadInfo, Type, Variant_pending_rejected_accepted } from '../backend';
+import type { Profile, Request, UserProfile, Status, Status__1, Config, Message, MessageThreadInfo, Type, Variant_pending_rejected_accepted, CommissionDue } from '../backend';
 import { Principal } from '@dfinity/principal';
 
 // Query keys for earnings-related queries
 export const EARNINGS_QUERY_KEYS = {
   platformEarnings: ['platformEarnings'] as const,
   monetizationConfig: ['monetizationConfig'] as const,
+};
+
+// Query keys for compliance
+export const COMPLIANCE_QUERY_KEYS = {
+  callerBanStatus: ['callerBanStatus'] as const,
+  callerCommissionsDue: ['callerCommissionsDue'] as const,
 };
 
 // User Profile Queries
@@ -41,6 +47,52 @@ export function useSaveCallerUserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+// Compliance Queries
+export function useGetCallerBanStatus() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: COMPLIANCE_QUERY_KEYS.callerBanStatus,
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerBanned();
+    },
+    enabled: !!actor && !isFetching,
+    retry: false,
+  });
+}
+
+export function useGetCallerCommissionsDue() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<CommissionDue[] | null>({
+    queryKey: COMPLIANCE_QUERY_KEYS.callerCommissionsDue,
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getCallerCommissionDues();
+    },
+    enabled: !!actor && !isFetching,
+    retry: false,
+  });
+}
+
+export function useConfirmCommissionPayment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ bookingId, paid }: { bookingId: string; paid: boolean }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.confirmCommissionPayment(bookingId, paid);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: COMPLIANCE_QUERY_KEYS.callerCommissionsDue });
+      queryClient.invalidateQueries({ queryKey: COMPLIANCE_QUERY_KEYS.callerBanStatus });
+      queryClient.invalidateQueries({ queryKey: EARNINGS_QUERY_KEYS.platformEarnings });
     },
   });
 }
@@ -179,6 +231,7 @@ export function useUpdateBookingStatus() {
       queryClient.invalidateQueries({ queryKey: ['allBookings'] });
       queryClient.invalidateQueries({ queryKey: ['userBookings'] });
       queryClient.invalidateQueries({ queryKey: EARNINGS_QUERY_KEYS.platformEarnings });
+      queryClient.invalidateQueries({ queryKey: COMPLIANCE_QUERY_KEYS.callerCommissionsDue });
     },
   });
 }

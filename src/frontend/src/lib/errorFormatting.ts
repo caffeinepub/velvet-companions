@@ -2,6 +2,19 @@ export function formatError(error: unknown): string {
   if (error instanceof Error) {
     const message = error.message;
     
+    // Handle ban errors
+    if (message.includes('banned') || message.includes('Banned')) {
+      return 'Your account has been permanently banned due to non-payment of commission fees.';
+    }
+    
+    // Handle commission-related errors
+    if (message.includes('commission') || message.includes('Commission')) {
+      if (message.includes('not found')) {
+        return 'Commission record not found.';
+      }
+      return 'There was an issue processing your commission payment.';
+    }
+    
     // Handle authorization errors
     if (message.includes('Unauthorized')) {
       if (message.includes('matched users') || message.includes('booking relationship')) {

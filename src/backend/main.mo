@@ -6,13 +6,14 @@ import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Text "mo:core/Text";
 import Nat "mo:core/Nat";
+import Bool "mo:core/Bool";
+import List "mo:core/List";
 import Principal "mo:core/Principal";
+import Iter "mo:core/Iter";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   module CompanionProfile {
     public type Status = {
@@ -136,6 +137,16 @@ actor {
     requester : Principal;
   };
 
+  public type CommissionDue = {
+    bookingId : Text;
+    requesterId : Principal;
+    amount : Int;
+    status : {
+      #pending;
+      #paid;
+    };
+  };
+
   var accessControlState = AccessControl.initState();
   var companionProfiles = Map.empty<Text, CompanionProfile.Profile>();
   var bookingRequests = Map.empty<Text, BookingRequest.Request>();
@@ -143,6 +154,8 @@ actor {
   var messages = Map.empty<Text, Message.Message>();
   var companionFeePaid = Map.empty<Principal, Bool>();
   var platformEarnings : Int = 0;
+  var commissionsDue = Map.empty<Principal, List.List<CommissionDue>>();
+  var bannedAccounts = Map.empty<Principal, Bool>();
 
   // Default to commission model, can be updated by admin
   var activeMonetizationConfig : Monetization.Config = {
@@ -191,14 +204,7 @@ actor {
   func verifyAndRecordFee(caller : Principal, feeAmount : Int, feeType : Text) {
     let alreadyPaid = companionFeePaid.get(caller);
     switch (alreadyPaid) {
-      case (?true) {
-        switch (feeType) {
-          case ("companion_listing") {};
-          case ("booking_request") {};
-          case ("featured_placement") {};
-          case (_) {};
-        };
-      };
+      case (?true) {};
       case (null) {
         platformEarnings += feeAmount;
         companionFeePaid.add(caller, true);
@@ -210,8 +216,29 @@ actor {
     };
   };
 
+  // Ban check wrapper for public functions
+  func checkNotBanned(caller : Principal) {
+    switch (bannedAccounts.get(caller)) {
+      case (?true) { Runtime.trap("Account is permanently banned") };
+      case (_) {};
+    };
+  };
+
+  // Compliance API - NO AUTHENTICATION REQUIRED (frontend compliance gate needs access)
+  public query ({ caller }) func isCallerBanned() : async Bool {
+    bannedAccounts.get(caller) == ?true;
+  };
+
+  public query ({ caller }) func getCallerCommissionDues() : async ?[CommissionDue] {
+    switch (commissionsDue.get(caller)) {
+      case (?commissionList) { ?commissionList.toArray() };
+      case (null) { null };
+    };
+  };
+
   // User profile management
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
@@ -219,6 +246,7 @@ actor {
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    checkNotBanned(caller);
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
@@ -226,6 +254,7 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
@@ -234,6 +263,7 @@ actor {
 
   // Monetization config functions
   public shared ({ caller }) func updateMonetizationConfig(config : Monetization.Config) : async () {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can update monetization config");
     };
@@ -254,6 +284,7 @@ actor {
   };
 
   public query ({ caller }) func getActiveMonetizationConfig() : async Monetization.Config {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view monetization config");
     };
@@ -261,6 +292,7 @@ actor {
   };
 
   public query ({ caller }) func getPlatformEarnings() : async Int {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view platform earnings");
     };
@@ -269,6 +301,7 @@ actor {
 
   // Profile management (admin)
   public shared ({ caller }) func createOrUpdateProfile(profile : CompanionProfile.Profile) : async () {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create/edit companion profiles");
     };
@@ -314,6 +347,7 @@ actor {
   };
 
   public shared ({ caller }) func createOrUpdateCallerCompanionProfile(profile : CompanionProfile.Profile, hasPaidFee : Bool) : async () {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create their own companion profile");
     };
@@ -321,6 +355,7 @@ actor {
   };
 
   public shared ({ caller }) func adminUpdateProfileStatus(profileId : Text, status : CompanionProfile.Status) : async () {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can perform this action");
     };
@@ -346,8 +381,75 @@ actor {
     };
   };
 
+  // Commission handling
+  func createCommissionDue(booking : BookingRequest.Request) {
+    switch (companionProfiles.get(booking.companionId)) {
+      case (?companion) {
+        switch (activeMonetizationConfig.commissionRate) {
+          case (?rate) {
+            let amount = (companion.priceRange.min + companion.priceRange.max) / 2;
+            let commission : CommissionDue = {
+              bookingId = booking.id;
+              requesterId = booking.requesterId;
+              amount = (amount * rate) / 100;
+              status = #pending;
+            };
+
+            let existingList = switch (commissionsDue.get(booking.requesterId)) {
+              case (?list) { list };
+              case (null) { List.empty<CommissionDue>() };
+            };
+
+            existingList.add(commission);
+
+            commissionsDue.add(booking.requesterId, existingList);
+          };
+          case (null) {};
+        };
+      };
+      case (null) {};
+    };
+  };
+
+  public shared ({ caller }) func confirmCommissionPayment(bookingId : Text, paid : Bool) : async () {
+    checkNotBanned(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can confirm commission payments");
+    };
+
+    let updatedCommissionsList = switch (commissionsDue.get(caller)) {
+      case (?commissionList) {
+        commissionList.map<CommissionDue, CommissionDue>(
+          func(commission) {
+            if (commission.bookingId == bookingId and commission.status == #pending) {
+              if (paid) {
+                return { commission with status = #paid };
+              } else {
+                bannedAccounts.add(caller, true);
+                Runtime.trap("Non-payment of commission; account permanently banned");
+              };
+            };
+            commission;
+          }
+        );
+      };
+      case (null) { Runtime.trap("No commission found for this booking") };
+    };
+
+    commissionsDue.add(caller, updatedCommissionsList);
+  };
+
+  public shared ({ caller }) func adminRevertBan(user : Principal) : async () {
+    checkNotBanned(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can revert bans");
+    };
+    bannedAccounts.remove(user);
+  };
+
   // Booking requests
   public shared ({ caller }) func submitBookingRequest(request : BookingRequest.Request) : async () {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can submit booking requests");
     };
@@ -367,6 +469,7 @@ actor {
   };
 
   public shared ({ caller }) func updateBookingRequestStatus(requestId : Text, status : BookingRequest.Status) : async () {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can accept/reject");
     };
@@ -385,19 +488,7 @@ actor {
         };
         bookingRequests.add(requestId, updated);
         if (status == #completed and activeMonetizationConfig.model == #commission) {
-          let booking = updated;
-          switch (companionProfiles.get(booking.companionId)) {
-            case (?companion) {
-              switch (activeMonetizationConfig.commissionRate) {
-                case (?rate) {
-                  let amount = (companion.priceRange.min + companion.priceRange.max) / 2;
-                  platformEarnings += (amount * rate) / 100;
-                };
-                case (null) {};
-              };
-            };
-            case (null) {};
-          };
+          createCommissionDue(updated);
         };
       };
     };
@@ -405,6 +496,7 @@ actor {
 
   // Messaging system
   public shared ({ caller }) func sendMessage(message : Message.Message) : async () {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can send messages");
     };
@@ -454,6 +546,7 @@ actor {
   };
 
   public query ({ caller }) func getMessagesByUserId(userId : Principal) : async [Message.Message] {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can access messages");
     };
@@ -471,6 +564,7 @@ actor {
   };
 
   public query ({ caller }) func getMessagesByParticipants(sender : Principal, receiver : Principal) : async [Message.Message] {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can access messages");
     };
@@ -494,6 +588,7 @@ actor {
     );
   };
 
+  // Public browsing - NO AUTHENTICATION REQUIRED (guests can browse)
   public query ({ caller }) func getActiveProfiles() : async [CompanionProfile.Profile] {
     companionProfiles.values().toArray().sort().filter(
       func(profile) {
@@ -506,6 +601,10 @@ actor {
   };
 
   public query ({ caller }) func getUserBookings(userId : Principal) : async [BookingRequest.Request] {
+    checkNotBanned(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view bookings");
+    };
     if (caller != userId and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own bookings");
     };
@@ -516,6 +615,7 @@ actor {
   };
 
   public query ({ caller }) func canUserAccessMessages(user1 : Principal, user2 : Principal) : async Bool {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can check message access");
     };
@@ -533,6 +633,7 @@ actor {
   };
 
   public query ({ caller }) func getUserMessageThreads(user : Principal) : async [MessageThreadInfo] {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can access message threads");
     };
@@ -580,6 +681,7 @@ actor {
   };
 
   public query ({ caller }) func getAllProfiles() : async [CompanionProfile.Profile] {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view all profiles");
     };
@@ -587,9 +689,18 @@ actor {
   };
 
   public query ({ caller }) func getAllBookings() : async [BookingRequest.Request] {
+    checkNotBanned(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view all bookings");
     };
     bookingRequests.values().toArray().sort();
+  };
+
+  public query ({ caller }) func isBanned(user : Principal) : async Bool {
+    checkNotBanned(caller);
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can check ban status");
+    };
+    bannedAccounts.get(user) == ?true;
   };
 };

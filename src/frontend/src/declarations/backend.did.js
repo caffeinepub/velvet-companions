@@ -66,6 +66,12 @@ export const Request = IDL.Record({
   'requestTime' : Time,
   'requesterId' : IDL.Principal,
 });
+export const CommissionDue = IDL.Record({
+  'status' : IDL.Variant({ 'pending' : IDL.Null, 'paid' : IDL.Null }),
+  'bookingId' : IDL.Text,
+  'amount' : IDL.Int,
+  'requesterId' : IDL.Principal,
+});
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Opt(IDL.Text),
@@ -98,6 +104,7 @@ export const MessageThreadInfo = IDL.Record({
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'adminRevertBan' : IDL.Func([IDL.Principal], [], []),
   'adminUpdateProfileStatus' : IDL.Func([IDL.Text, Status__1], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'canUserAccessMessages' : IDL.Func(
@@ -105,6 +112,7 @@ export const idlService = IDL.Service({
       [IDL.Bool],
       ['query'],
     ),
+  'confirmCommissionPayment' : IDL.Func([IDL.Text, IDL.Bool], [], []),
   'createOrUpdateCallerCompanionProfile' : IDL.Func(
       [Profile, IDL.Bool],
       [],
@@ -115,6 +123,11 @@ export const idlService = IDL.Service({
   'getActiveProfiles' : IDL.Func([], [IDL.Vec(Profile)], ['query']),
   'getAllBookings' : IDL.Func([], [IDL.Vec(Request)], ['query']),
   'getAllProfiles' : IDL.Func([], [IDL.Vec(Profile)], ['query']),
+  'getCallerCommissionDues' : IDL.Func(
+      [],
+      [IDL.Opt(IDL.Vec(CommissionDue))],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getMessagesByParticipants' : IDL.Func(
@@ -139,7 +152,9 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'isBanned' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'isCallerBanned' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'sendMessage' : IDL.Func([Message], [], []),
   'submitBookingRequest' : IDL.Func([Request], [], []),
@@ -208,6 +223,12 @@ export const idlFactory = ({ IDL }) => {
     'requestTime' : Time,
     'requesterId' : IDL.Principal,
   });
+  const CommissionDue = IDL.Record({
+    'status' : IDL.Variant({ 'pending' : IDL.Null, 'paid' : IDL.Null }),
+    'bookingId' : IDL.Text,
+    'amount' : IDL.Int,
+    'requesterId' : IDL.Principal,
+  });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Opt(IDL.Text),
@@ -240,6 +261,7 @@ export const idlFactory = ({ IDL }) => {
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'adminRevertBan' : IDL.Func([IDL.Principal], [], []),
     'adminUpdateProfileStatus' : IDL.Func([IDL.Text, Status__1], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'canUserAccessMessages' : IDL.Func(
@@ -247,6 +269,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Bool],
         ['query'],
       ),
+    'confirmCommissionPayment' : IDL.Func([IDL.Text, IDL.Bool], [], []),
     'createOrUpdateCallerCompanionProfile' : IDL.Func(
         [Profile, IDL.Bool],
         [],
@@ -257,6 +280,11 @@ export const idlFactory = ({ IDL }) => {
     'getActiveProfiles' : IDL.Func([], [IDL.Vec(Profile)], ['query']),
     'getAllBookings' : IDL.Func([], [IDL.Vec(Request)], ['query']),
     'getAllProfiles' : IDL.Func([], [IDL.Vec(Profile)], ['query']),
+    'getCallerCommissionDues' : IDL.Func(
+        [],
+        [IDL.Opt(IDL.Vec(CommissionDue))],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getMessagesByParticipants' : IDL.Func(
@@ -285,7 +313,9 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'isBanned' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'isCallerBanned' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'sendMessage' : IDL.Func([Message], [], []),
     'submitBookingRequest' : IDL.Func([Request], [], []),

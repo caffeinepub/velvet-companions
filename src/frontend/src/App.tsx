@@ -1,5 +1,4 @@
-import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet } from '@tanstack/react-router';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 
@@ -11,6 +10,7 @@ import SiteFooter from './components/layout/SiteFooter';
 import RequireAgeGate from './components/guards/RequireAgeGate';
 import RequireAuth from './components/guards/RequireAuth';
 import RequireAdmin from './components/guards/RequireAdmin';
+import CommissionComplianceGate from './components/compliance/CommissionComplianceGate';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -33,14 +33,16 @@ import ProfileSetupModal from './components/auth/ProfileSetupModal';
 
 function Layout() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <SiteFooter />
-      <ProfileSetupModal />
-    </div>
+    <CommissionComplianceGate>
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <SiteFooter />
+        <ProfileSetupModal />
+      </div>
+    </CommissionComplianceGate>
   );
 }
 

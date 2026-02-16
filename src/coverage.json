@@ -1,46 +1,77 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T22:17:57.336Z",
+  "generatedAt": "2026-02-16T22:39:00.248Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 1,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-23",
-        "summary": "Set the platform monetization configuration to use the commission-per-booking model with a 30% commission rate, so that platform earnings increase by 30% of the booking amount when an admin marks a booking request as completed.",
+        "id": "REQ-28",
+        "summary": "Complete and enable the commission/ban compliance gate UI so the app is safe to launch: implement `frontend/src/components/compliance/CommissionComplianceGate.tsx` (currently empty) as a blocking gate that (1) detects whether the signed-in user is banned, and (2) detects whether the signed-in user has any pending commission-due items, and blocks the rest of the app until the user resolves the compliance prompt.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-29",
+        "summary": "Wire the commission/ban compliance gate into the application shell so it is enforced across all authenticated user experiences (e.g., My Profile, Messages, booking flows), while leaving public browsing and legal pages accessible.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-30",
+        "summary": "Verify backend support for launch-critical compliance checks: ensure the backend exposes stable APIs for (a) checking whether the caller is banned and (b) fetching the caller’s commission-due items, and that these APIs are used by the frontend compliance gate.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-24",
-        "summary": "Ensure the admin UI reflects the 30% commission setting by showing the current commission rate from the backend monetization config in the Monetization Settings page and the Earnings Dashboard page.",
+        "id": "REQ-31",
+        "summary": "Perform a launch readiness pass to ensure there are no placeholder components, broken routes, or obvious runtime errors in the deployed build, focusing on the compliance/ban flow and core user journeys (browse → view profile → request booking; user profile creation/editing; messaging; admin booking completion creating commission due).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/admin/AdminMonetizationSettingsPage.tsx",
-          "frontend/src/pages/admin/AdminEarningsPage.tsx"
+          "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/lib/errorFormatting.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/admin/AdminMonetizationSettingsPage.tsx",
-          "frontend/src/pages/admin/AdminEarningsPage.tsx"
+          "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/lib/errorFormatting.ts"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/admin/AdminEarningsPage.tsx",
-    "frontend/src/pages/admin/AdminMonetizationSettingsPage.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/compliance/CommissionComplianceGate.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/errorFormatting.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -10,6 +10,13 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface CommissionDue {
+  'status' : { 'pending' : null } |
+    { 'paid' : null },
+  'bookingId' : string,
+  'amount' : bigint,
+  'requesterId' : Principal,
+}
 export interface Config {
   'leadFee' : [] | [bigint],
   'model' : Model,
@@ -87,9 +94,11 @@ export type UserRole = { 'admin' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'adminRevertBan' : ActorMethod<[Principal], undefined>,
   'adminUpdateProfileStatus' : ActorMethod<[string, Status__1], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'canUserAccessMessages' : ActorMethod<[Principal, Principal], boolean>,
+  'confirmCommissionPayment' : ActorMethod<[string, boolean], undefined>,
   'createOrUpdateCallerCompanionProfile' : ActorMethod<
     [Profile, boolean],
     undefined
@@ -99,6 +108,7 @@ export interface _SERVICE {
   'getActiveProfiles' : ActorMethod<[], Array<Profile>>,
   'getAllBookings' : ActorMethod<[], Array<Request>>,
   'getAllProfiles' : ActorMethod<[], Array<Profile>>,
+  'getCallerCommissionDues' : ActorMethod<[], [] | [Array<CommissionDue>]>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getMessagesByParticipants' : ActorMethod<
@@ -110,7 +120,9 @@ export interface _SERVICE {
   'getUserBookings' : ActorMethod<[Principal], Array<Request>>,
   'getUserMessageThreads' : ActorMethod<[Principal], Array<MessageThreadInfo>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'isBanned' : ActorMethod<[Principal], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isCallerBanned' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'sendMessage' : ActorMethod<[Message], undefined>,
   'submitBookingRequest' : ActorMethod<[Request], undefined>,
