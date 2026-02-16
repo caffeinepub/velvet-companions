@@ -1,309 +1,154 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Velvet Companions — Frontend implementation plan",
+  "title": "Velvet Companions: Self-service companion profiles with one-time ₹10 fee and free matched messaging",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Internet Identity sign-in, role-aware UI (guest/user/admin), and guarded access for admin/profile/booking actions.",
+      "id": "REQ-14",
+      "summary": "Add a non-admin self-service companion profile create/edit flow tied to the signed-in Principal (no /admin routes).",
       "acceptanceCriteria": [
-        "Users can sign in and sign out using Internet Identity.",
-        "Unauthenticated users can browse public pages but cannot create or submit bookings if the product requires sign-in (define which actions require sign-in and enforce consistently).",
-        "An admin role exists and can be granted by a backend-maintained allowlist of principals.",
-        "Admin-only UI actions are hidden/disabled for non-admin users and are enforced on the backend as well."
+        "A signed-in (non-admin) user can create a companion profile tied to their Principal without accessing any /admin routes.",
+        "A signed-in (non-admin) user can update their own companion profile fields (display name, description, photo URL, category, languages, and other existing fields as applicable).",
+        "A signed-in (non-admin) user cannot create/edit a companion profile for a different Principal.",
+        "Existing admin profile management (list/edit/status changes) continues to work as-is."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/pages/MyCompanionProfilePage.tsx",
+          "operation": "create",
+          "description": "Create a user-facing page (not under /admin) that lets an authenticated non-admin create or edit their own companion profile, deriving ownership from the logged-in Internet Identity Principal (do not allow editing a different Principal). Use the selected \"authorization\" component concepts via existing auth hooks (e.g., role checks) to ensure only signed-in users proceed; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query hooks/mutations for the self-service companion profile flow using the existing backend actor capabilities (including a caller-scoped create/update). Ensure mutations invalidate relevant caches so browse/profile pages refresh. Use existing auth state patterns consistent with the selected \"authorization\" component; verify the component's usage instructions before implementing."
+        },
+        {
           "path": "frontend/src/App.tsx",
-          "operation": "create",
-          "description": "Create the app shell with routing, top-level layout, and route guards (age gate + auth + admin) to enforce guest/user/admin access for browsing vs booking vs admin management."
+          "operation": "modify",
+          "description": "Wire the new self-service profile route into the router (not under /admin) and wrap it with existing guards (RequireAuth; optionally also RequireAgeGate for consistency)."
         },
         {
-          "path": "frontend/src/components/auth/LoginButton.tsx",
-          "operation": "create",
-          "description": "Add a login/logout control using the existing Internet Identity hook and React Query cache clearing patterns from the selected authorization component. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/layout/SiteHeader.tsx",
+          "operation": "modify",
+          "description": "Add a navigation entry for the new self-service profile page, shown only to authenticated non-admin users (use existing role/admin checks). Use the selected \"authorization\" component approach via existing hooks; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "In the self-service profile UI, require explicit one-time ₹10 fee confirmation on first creation and surface backend errors clearly; do not require it for edits.",
+      "acceptanceCriteria": [
+        "If a signed-in user has never created a companion profile before, attempting to create one without confirming the fee fails with a clear error message.",
+        "If a signed-in user confirms the fee, the profile is created and platform earnings increase by exactly 10 (rupees) one time for that Principal.",
+        "If the same signed-in user edits their existing profile later, no additional ₹10 is added to platform earnings.",
+        "Admin earnings dashboard continues to show updated platform earnings totals after user-paid profile creation events."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/MyCompanionProfilePage.tsx",
+          "operation": "modify",
+          "description": "Add UI state to detect whether the user is creating vs editing, show a fee confirmation control only for first-time creation, and pass the fee-confirmation input into the caller-scoped create/update mutation. Display backend failures using existing toast + error formatting patterns. Use role awareness consistent with the selected \"authorization\" component; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "operation": "create",
-          "description": "Prompt signed-in users for a display name on first login by calling backend user profile functions via React Query; avoid modal flash per selected authorization component guidance. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useAuthz.ts",
-          "operation": "create",
-          "description": "Create a small authz helper hook that derives isAuthenticated, caller role, and isAdmin using backend role queries and the existing actor/identity hooks; centralize authorization error handling. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/guards/RequireAuth.tsx",
-          "operation": "create",
-          "description": "Create a guard wrapper that blocks booking/admin actions when not authenticated and renders a consistent access-denied message with a sign-in CTA."
-        },
-        {
-          "path": "frontend/src/components/guards/RequireAdmin.tsx",
-          "operation": "create",
-          "description": "Create a guard wrapper for admin-only routes and admin UI controls; ensure non-admins cannot access admin screens."
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the self-service create/update mutation wrapper to accept a fee-confirmation flag and, on success, invalidate earnings-related query keys in addition to profile browsing caches so admin earnings totals refresh on next view."
         },
         {
           "path": "frontend/src/lib/errorFormatting.ts",
-          "operation": "create",
-          "description": "Normalize backend authorization failures and other errors into user-friendly English messages for toasts/alerts."
+          "operation": "modify",
+          "description": "Extend error formatting to provide clear English messaging for fee-confirmation-related failures (and other expected self-service profile errors) while preserving existing authorization error handling."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Public luxury magazine-style landing, browse/search, and profile detail pages with non-explicit adult companionship branding.",
+      "id": "REQ-16",
+      "summary": "Provide a dedicated non-admin page to create a companion profile that clearly states the one-time ₹10 fee, validates required fields, and routes after success.",
       "acceptanceCriteria": [
-        "A home/landing page exists with a clear brand presentation and a call-to-action to browse companions.",
-        "A browse/search page lists companions with photo, display name, location, and headline tagline.",
-        "A profile detail page shows gallery image(s), bio, services offered (worded as legal companionship categories), and availability overview.",
-        "All user-facing text is in English.",
-        "No explicit sexual content or pornography is displayed; copy is framed as legal adult companionship."
+        "There is a non-admin route/page (not under /admin) where signed-in users can create their companion profile.",
+        "The UI includes explicit English text stating: \"One-time fee: ₹10 to create your profile\" before submission.",
+        "The UI blocks submission until required fields are filled, and shows backend errors using the existing error formatting/toast patterns.",
+        "After successful creation, the user is routed to a sensible page (e.g., their profile view) and relevant React Query caches are invalidated so browse/profile pages reflect the new profile."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LandingPage.tsx",
-          "operation": "create",
-          "description": "Implement the landing page (brand story, clear 18+ disclaimer snippet, and CTA to browse companions) styled as a high-contrast editorial cover."
-        },
-        {
-          "path": "frontend/src/pages/BrowseCompanionsPage.tsx",
-          "operation": "create",
-          "description": "Implement a browse/search view that lists published companions with image, display name, location, and headline; include client-side search/filter UI."
-        },
-        {
-          "path": "frontend/src/pages/CompanionProfilePage.tsx",
-          "operation": "create",
-          "description": "Implement a profile detail page with gallery, bio, companionship categories (non-explicit), and an availability overview section (static copy/placeholder if backend does not supply availability)."
-        },
-        {
-          "path": "frontend/src/components/companions/CompanionCard.tsx",
-          "operation": "create",
-          "description": "Create a reusable editorial card for listing companions (image + headline + metadata) using shadcn/ui building blocks (compose only; do not edit frontend/src/components/ui). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/companions/CompanionGallery.tsx",
-          "operation": "create",
-          "description": "Create a simple, performant image gallery component for the profile page (non-explicit imagery), using composed shadcn/ui primitives where helpful. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/queries/useProfiles.ts",
-          "operation": "create",
-          "description": "Add React Query hooks to load published/active profiles and fetch a single profile for detail pages via the existing actor hook."
+          "path": "frontend/src/pages/MyCompanionProfilePage.tsx",
+          "operation": "modify",
+          "description": "Implement the companion profile form UI for non-admin users: required-field validation, explicit fee text \"One-time fee: ₹10 to create your profile\" shown before submission, and success routing (e.g., to /profile/$profileId using the created profile id generated client-side). Use existing toast patterns and formatError for backend error display."
         },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Wire the public routes (landing, browse, profile detail) into the app router and ensure navigation links exist to reach them."
+          "description": "Ensure the new self-service page route is registered and reachable (not under /admin), and that successful navigation targets (e.g., existing /profile/$profileId) remain wired."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure the self-service mutation invalidates active profile browsing caches so Browse and profile views reflect newly created/updated companion profiles."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Admin companion profile management UI (create/edit/publish-unpublish/moderation hide/remove) with role-gated access.",
+      "id": "REQ-17",
+      "summary": "Add frontend inbox + conversation messaging UI that is free and only works for backend-authorized matches, with clear errors when not matched.",
       "acceptanceCriteria": [
-        "Admin can create a companion profile with fields: display name, headline, bio, location, age (18+), photos (URLs or uploaded static assets), tags/categories, and status (published/unpublished).",
-        "Published profiles appear on public browse pages; unpublished profiles do not.",
-        "Admin can edit and delete profiles.",
-        "Backend validates required fields and enforces 18+ requirement on stored profiles."
+        "The backend has persistent message storage and APIs to send and list messages for a conversation, with authorization checks so only matched participants can access the conversation.",
+        "The frontend has a basic inbox/conversation UI that allows matched users to view message history and send new messages.",
+        "No backend code path for messaging increments platform earnings or depends on monetization configuration.",
+        "If two users are not matched, attempts to open a conversation or send a message are rejected with a clear English error."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/admin/AdminProfilesPage.tsx",
+          "path": "frontend/src/pages/messages/MessagesInboxPage.tsx",
           "operation": "create",
-          "description": "Create an admin-only page to list all profiles with status controls (publish/unpublish), edit, and remove/hide actions; gate with RequireAdmin."
+          "description": "Create an authenticated inbox page that lists the signed-in user's allowed message threads (as provided by the backend) and links into a conversation view. Use the selected \"authorization\" component approach via existing auth/role hooks to require sign-in; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/admin/AdminProfileEditorPage.tsx",
+          "path": "frontend/src/pages/messages/MessagesConversationPage.tsx",
           "operation": "create",
-          "description": "Create an admin-only create/edit form for companion profiles with validation hints (including 18+ age field), photo URL inputs and optional selection of bundled static images."
+          "description": "Create an authenticated conversation page that loads message history for a selected counterpart and allows sending new messages. Handle backend authorization failures (e.g., not matched) by showing clear English errors via existing toast + formatError patterns. Use the selected \"authorization\" component approach via existing hooks; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/admin/ProfileStatusBadge.tsx",
-          "operation": "create",
-          "description": "Add a consistent status indicator for profile review/active/inactive states using composed shadcn/ui primitives. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/queries/useAdminProfiles.ts",
-          "operation": "create",
-          "description": "Add React Query hooks/mutations to load all profiles for admin and perform create/update/status-change/remove actions; ensure UI handles authorization errors cleanly."
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query hooks for messaging: fetch allowed threads for the caller, fetch messages for a participant pair, and send a message with appropriate cache invalidation/refetch to keep the conversation updated."
         },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Register admin routes for profile management and add admin-only navigation items that are hidden for non-admin users."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Booking request submission from companion profile and admin review/accept/reject with status tracking (no real-time chat).",
-      "acceptanceCriteria": [
-        "From a companion profile page, a user can open a booking request form capturing: preferred date/time, duration, location/city, and a free-text note.",
-        "Submitting creates a booking request with a status lifecycle (e.g., pending/accepted/rejected/cancelled).",
-        "Admin can view a list of booking requests, filter by status, and open a detail view.",
-        "Admin can accept or reject a request; status updates are persisted and reflected in the UI.",
-        "No WebSockets or real-time messaging is included; communication is handled via status updates and optional contact instructions text."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/bookings/BookingRequestDialog.tsx",
-          "operation": "create",
-          "description": "Create a booking request form (date/time, duration, city, notes) launched from the companion profile page; require sign-in via RequireAuth and show English validation messages."
-        },
-        {
-          "path": "frontend/src/pages/admin/AdminBookingsPage.tsx",
-          "operation": "create",
-          "description": "Create an admin-only bookings list with status filter tabs and row actions to open details; gate with RequireAdmin."
-        },
-        {
-          "path": "frontend/src/pages/admin/AdminBookingDetailPage.tsx",
-          "operation": "create",
-          "description": "Create an admin-only booking detail view showing request metadata and accept/reject actions that update status and refresh the list."
-        },
-        {
-          "path": "frontend/src/hooks/queries/useBookings.ts",
-          "operation": "create",
-          "description": "Add React Query hooks/mutations for submitting booking requests (user) and loading/updating booking requests (admin), ensuring status changes are reflected in the UI."
-        },
-        {
-          "path": "frontend/src/pages/CompanionProfilePage.tsx",
-          "operation": "modify",
-          "description": "Wire the booking dialog CTA into the profile detail page and ensure it is disabled/redirected appropriately when the user is not signed in."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Register admin booking routes and add admin-only navigation entry to reach bookings management."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Legal/compliance UX: age gate, Terms/Disclaimer, Privacy basics, and persistent 18+ indicators.",
-      "acceptanceCriteria": [
-        "First-time visitors are shown an age gate (confirm 18+) before viewing profiles; the choice is remembered locally.",
-        "A dedicated Terms/Disclaimer page exists with non-explicit language (adult companionship, legality varies, no solicitation of illegal services).",
-        "Primary navigation/footer includes links to Terms/Disclaimer and Privacy basics.",
-        "Profile pages display an “18+ only” notice."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/compliance/AgeGateModal.tsx",
-          "operation": "create",
-          "description": "Implement an age gate modal shown before accessing companion browse/detail pages; persist confirmation locally and provide a clear refusal path."
-        },
-        {
-          "path": "frontend/src/components/guards/RequireAgeGate.tsx",
-          "operation": "create",
-          "description": "Create a route/content guard that blocks protected public content (browse/profile) until age confirmation is stored locally."
-        },
-        {
-          "path": "frontend/src/pages/TermsDisclaimerPage.tsx",
-          "operation": "create",
-          "description": "Create a Terms/Disclaimer page in English with non-explicit adult companionship language (legality varies; no solicitation of illegal services; 18+ only)."
-        },
-        {
-          "path": "frontend/src/pages/PrivacyPage.tsx",
-          "operation": "create",
-          "description": "Create a simple Privacy basics page in English (what is stored, what is not, non-real-time communications, and general contact/disclaimer language)."
-        },
-        {
-          "path": "frontend/src/components/layout/SiteHeader.tsx",
-          "operation": "create",
-          "description": "Create a primary header with 18+ indicator, navigation links, and login button; ensure Terms/Privacy are reachable."
-        },
-        {
-          "path": "frontend/src/components/layout/SiteFooter.tsx",
-          "operation": "create",
-          "description": "Create a footer with links to Terms/Disclaimer and Privacy basics plus a persistent “18+ only” notice."
-        },
-        {
-          "path": "frontend/src/pages/CompanionProfilePage.tsx",
-          "operation": "modify",
-          "description": "Add a visible “18+ only” notice on profile pages and ensure copy remains non-explicit and framed as legal companionship."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wire age-gated route protection for browse/profile routes and register Terms/Privacy routes; include header/footer globally."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Apply a coherent black/cream/gold luxury editorial theme across pages with consistent typography and branded components.",
-      "acceptanceCriteria": [
-        "A consistent color palette and typography scale is used across the app.",
-        "Buttons, cards, forms, and navigation follow the same styling rules across pages.",
-        "The UI avoids default template look and feels intentionally branded without using blue/purple as primary colors."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/index.css",
-          "operation": "create",
-          "description": "Define global CSS variables and Tailwind base styles for the black/cream/gold palette and strong editorial typography, aligned with shadcn/ui theming conventions."
-        },
-        {
-          "path": "frontend/tailwind.config.js",
-          "operation": "modify",
-          "description": "Extend theme tokens (fonts/spacing/shadows as needed) to support a luxury editorial look while keeping primary colors away from blue/purple."
-        },
-        {
-          "path": "frontend/src/components/layout/EditorialSection.tsx",
-          "operation": "create",
-          "description": "Create a reusable 'magazine spread' section wrapper (headlines, subheads, separators, grids) to standardize layout across landing/browse/profile pages."
-        },
-        {
-          "path": "frontend/src/pages/LandingPage.tsx",
-          "operation": "modify",
-          "description": "Refine landing page layout to use the editorial section components and ensure consistent branded styling for CTA/buttons/cards."
-        },
-        {
-          "path": "frontend/src/pages/BrowseCompanionsPage.tsx",
-          "operation": "modify",
-          "description": "Apply consistent editorial grid, filters styling, and card rhythm so the browse page matches the global theme."
-        },
-        {
-          "path": "frontend/src/pages/CompanionProfilePage.tsx",
-          "operation": "modify",
-          "description": "Apply 'magazine spread' layout patterns (hero media, side rail metadata, typographic scale) consistent with the theme."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Include generated static brand assets (logo + hero background) and render them from frontend/public/assets/generated.",
-      "acceptanceCriteria": [
-        "Generated images are added under frontend/public/assets/generated with the specified filenames.",
-        "Landing page uses the hero background image in a performant way (responsive, cropped appropriately).",
-        "Brand logo is shown in header/navigation and optionally in the footer."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/public/assets/generated/logo-wordmark.dim_512x192.png",
-          "operation": "create",
-          "description": "Add the generated minimal luxury wordmark logo asset at frontend/public/assets/generated/logo-wordmark.dim_512x192.png."
-        },
-        {
-          "path": "frontend/public/assets/generated/hero-background.dim_1920x1080.png",
-          "operation": "create",
-          "description": "Add the generated editorial hero background asset at frontend/public/assets/generated/hero-background.dim_1920x1080.png."
+          "description": "Wire messaging routes into the router (e.g., /messages and /messages/$counterpartPrincipal) and wrap them with RequireAuth (and optionally RequireAgeGate for consistency with the app's protected areas)."
         },
         {
           "path": "frontend/src/components/layout/SiteHeader.tsx",
           "operation": "modify",
-          "description": "Render the brand logo from frontend/public/assets/generated/logo-wordmark.dim_512x192.png in the header/navigation."
+          "description": "Add a primary navigation link to the new Messages inbox route, visible only when authenticated. Use the selected \"authorization\" component approach via existing hooks; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Use backend-provided match authorization to determine allowed conversations and only show permitted threads/conversations in the UI.",
+      "acceptanceCriteria": [
+        "The backend defines a deterministic match rule based on existing stored data (e.g., derived from booking requests/statuses) and enforces it consistently for messaging authorization.",
+        "The frontend can fetch and display a list of allowed conversations (or allowed matched counterparts) for the signed-in user.",
+        "Messaging UI only shows/permits conversations that the backend authorizes for the caller."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Implement queries that fetch only backend-authorized thread metadata for the caller and (optionally) a per-thread authorization check wrapper for route entry, so the UI can strictly rely on backend authorization for which conversations are accessible."
         },
         {
-          "path": "frontend/src/components/layout/SiteFooter.tsx",
+          "path": "frontend/src/pages/messages/MessagesInboxPage.tsx",
           "operation": "modify",
-          "description": "Optionally render the brand logo from frontend/public/assets/generated/logo-wordmark.dim_512x192.png in the footer alongside compliance links."
+          "description": "Render the inbox strictly from the backend-authorized threads list, showing only permitted counterparts/conversations and no manual free-form conversation creation. Use patterns consistent with the selected \"authorization\" component; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/LandingPage.tsx",
+          "path": "frontend/src/pages/messages/MessagesConversationPage.tsx",
           "operation": "modify",
-          "description": "Use frontend/public/assets/generated/hero-background.dim_1920x1080.png as the landing hero background with responsive, appropriately cropped presentation."
+          "description": "Guard conversation loading/sending by relying on backend authorization; if rejected, present a clear English error and prevent message composition from proceeding."
         }
       ]
     }

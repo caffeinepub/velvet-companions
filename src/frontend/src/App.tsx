@@ -22,6 +22,11 @@ import AdminProfilesPage from './pages/admin/AdminProfilesPage';
 import AdminProfileEditorPage from './pages/admin/AdminProfileEditorPage';
 import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 import AdminBookingDetailPage from './pages/admin/AdminBookingDetailPage';
+import AdminMonetizationSettingsPage from './pages/admin/AdminMonetizationSettingsPage';
+import AdminEarningsPage from './pages/admin/AdminEarningsPage';
+import MyCompanionProfilePage from './pages/MyCompanionProfilePage';
+import MessagesInboxPage from './pages/messages/MessagesInboxPage';
+import MessagesConversationPage from './pages/messages/MessagesConversationPage';
 
 // Auth
 import ProfileSetupModal from './components/auth/ProfileSetupModal';
@@ -66,6 +71,42 @@ const profileRoute = createRoute({
     <RequireAgeGate>
       <CompanionProfilePage />
     </RequireAgeGate>
+  ),
+});
+
+const myProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/my-profile',
+  component: () => (
+    <RequireAuth>
+      <RequireAgeGate>
+        <MyCompanionProfilePage />
+      </RequireAgeGate>
+    </RequireAuth>
+  ),
+});
+
+const messagesInboxRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/messages',
+  component: () => (
+    <RequireAuth>
+      <RequireAgeGate>
+        <MessagesInboxPage />
+      </RequireAgeGate>
+    </RequireAuth>
+  ),
+});
+
+const messagesConversationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/messages/$counterpartPrincipal',
+  component: () => (
+    <RequireAuth>
+      <RequireAgeGate>
+        <MessagesConversationPage />
+      </RequireAgeGate>
+    </RequireAuth>
   ),
 });
 
@@ -131,10 +172,33 @@ const adminBookingDetailRoute = createRoute({
   ),
 });
 
+const adminMonetizationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/monetization',
+  component: () => (
+    <RequireAdmin>
+      <AdminMonetizationSettingsPage />
+    </RequireAdmin>
+  ),
+});
+
+const adminEarningsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/earnings',
+  component: () => (
+    <RequireAdmin>
+      <AdminEarningsPage />
+    </RequireAdmin>
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   browseRoute,
   profileRoute,
+  myProfileRoute,
+  messagesInboxRoute,
+  messagesConversationRoute,
   termsRoute,
   privacyRoute,
   adminProfilesRoute,
@@ -142,6 +206,8 @@ const routeTree = rootRoute.addChildren([
   adminProfileCreateRoute,
   adminBookingsRoute,
   adminBookingDetailRoute,
+  adminMonetizationRoute,
+  adminEarningsRoute,
 ]);
 
 const router = createRouter({ routeTree });

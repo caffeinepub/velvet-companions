@@ -35,6 +35,20 @@ export const Profile = IDL.Record({
   'priceRange' : IDL.Record({ 'max' : IDL.Nat, 'min' : IDL.Nat }),
   'category' : IDL.Text,
 });
+export const Model = IDL.Variant({
+  'leadFee' : IDL.Null,
+  'none' : IDL.Null,
+  'featuredPlacement' : IDL.Null,
+  'commission' : IDL.Null,
+  'listingFee' : IDL.Null,
+});
+export const Config = IDL.Record({
+  'leadFee' : IDL.Opt(IDL.Int),
+  'model' : Model,
+  'featuredPlacementFee' : IDL.Opt(IDL.Int),
+  'commissionRate' : IDL.Opt(IDL.Int),
+  'listingFee' : IDL.Opt(IDL.Int),
+});
 export const Status = IDL.Variant({
   'pending' : IDL.Null,
   'completed' : IDL.Null,
@@ -56,18 +70,69 @@ export const UserProfile = IDL.Record({
   'email' : IDL.Opt(IDL.Text),
   'phoneNumber' : IDL.Opt(IDL.Text),
 });
+export const Type = IDL.Variant({
+  'offer' : IDL.Null,
+  'message' : IDL.Null,
+  'bookingRequest' : IDL.Null,
+});
+export const Message = IDL.Record({
+  'id' : IDL.Text,
+  'status' : IDL.Variant({
+    'pending' : IDL.Null,
+    'rejected' : IDL.Null,
+    'accepted' : IDL.Null,
+  }),
+  'content' : IDL.Text,
+  'sender' : IDL.Principal,
+  'messageType' : Type,
+  'timestamp' : Time,
+  'bookingRequestId' : IDL.Opt(IDL.Text),
+  'receiver' : IDL.Principal,
+});
+export const MessageThreadInfo = IDL.Record({
+  'requester' : IDL.Principal,
+  'companionId' : IDL.Text,
+  'companionPrincipal' : IDL.Principal,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'adminUpdateProfileStatus' : IDL.Func([IDL.Text, Status__1], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'canUserAccessMessages' : IDL.Func(
+      [IDL.Principal, IDL.Principal],
+      [IDL.Bool],
+      ['query'],
+    ),
+  'createOrUpdateCallerCompanionProfile' : IDL.Func(
+      [Profile, IDL.Bool],
+      [],
+      [],
+    ),
   'createOrUpdateProfile' : IDL.Func([Profile], [], []),
+  'getActiveMonetizationConfig' : IDL.Func([], [Config], ['query']),
   'getActiveProfiles' : IDL.Func([], [IDL.Vec(Profile)], ['query']),
   'getAllBookings' : IDL.Func([], [IDL.Vec(Request)], ['query']),
   'getAllProfiles' : IDL.Func([], [IDL.Vec(Profile)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getMessagesByParticipants' : IDL.Func(
+      [IDL.Principal, IDL.Principal],
+      [IDL.Vec(Message)],
+      ['query'],
+    ),
+  'getMessagesByUserId' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(Message)],
+      ['query'],
+    ),
+  'getPlatformEarnings' : IDL.Func([], [IDL.Int], ['query']),
   'getUserBookings' : IDL.Func([IDL.Principal], [IDL.Vec(Request)], ['query']),
+  'getUserMessageThreads' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(MessageThreadInfo)],
+      ['query'],
+    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -75,8 +140,10 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'sendMessage' : IDL.Func([Message], [], []),
   'submitBookingRequest' : IDL.Func([Request], [], []),
   'updateBookingRequestStatus' : IDL.Func([IDL.Text, Status], [], []),
+  'updateMonetizationConfig' : IDL.Func([Config], [], []),
 });
 
 export const idlInitArgs = [];
@@ -109,6 +176,20 @@ export const idlFactory = ({ IDL }) => {
     'priceRange' : IDL.Record({ 'max' : IDL.Nat, 'min' : IDL.Nat }),
     'category' : IDL.Text,
   });
+  const Model = IDL.Variant({
+    'leadFee' : IDL.Null,
+    'none' : IDL.Null,
+    'featuredPlacement' : IDL.Null,
+    'commission' : IDL.Null,
+    'listingFee' : IDL.Null,
+  });
+  const Config = IDL.Record({
+    'leadFee' : IDL.Opt(IDL.Int),
+    'model' : Model,
+    'featuredPlacementFee' : IDL.Opt(IDL.Int),
+    'commissionRate' : IDL.Opt(IDL.Int),
+    'listingFee' : IDL.Opt(IDL.Int),
+  });
   const Status = IDL.Variant({
     'pending' : IDL.Null,
     'completed' : IDL.Null,
@@ -130,20 +211,71 @@ export const idlFactory = ({ IDL }) => {
     'email' : IDL.Opt(IDL.Text),
     'phoneNumber' : IDL.Opt(IDL.Text),
   });
+  const Type = IDL.Variant({
+    'offer' : IDL.Null,
+    'message' : IDL.Null,
+    'bookingRequest' : IDL.Null,
+  });
+  const Message = IDL.Record({
+    'id' : IDL.Text,
+    'status' : IDL.Variant({
+      'pending' : IDL.Null,
+      'rejected' : IDL.Null,
+      'accepted' : IDL.Null,
+    }),
+    'content' : IDL.Text,
+    'sender' : IDL.Principal,
+    'messageType' : Type,
+    'timestamp' : Time,
+    'bookingRequestId' : IDL.Opt(IDL.Text),
+    'receiver' : IDL.Principal,
+  });
+  const MessageThreadInfo = IDL.Record({
+    'requester' : IDL.Principal,
+    'companionId' : IDL.Text,
+    'companionPrincipal' : IDL.Principal,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'adminUpdateProfileStatus' : IDL.Func([IDL.Text, Status__1], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'canUserAccessMessages' : IDL.Func(
+        [IDL.Principal, IDL.Principal],
+        [IDL.Bool],
+        ['query'],
+      ),
+    'createOrUpdateCallerCompanionProfile' : IDL.Func(
+        [Profile, IDL.Bool],
+        [],
+        [],
+      ),
     'createOrUpdateProfile' : IDL.Func([Profile], [], []),
+    'getActiveMonetizationConfig' : IDL.Func([], [Config], ['query']),
     'getActiveProfiles' : IDL.Func([], [IDL.Vec(Profile)], ['query']),
     'getAllBookings' : IDL.Func([], [IDL.Vec(Request)], ['query']),
     'getAllProfiles' : IDL.Func([], [IDL.Vec(Profile)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getMessagesByParticipants' : IDL.Func(
+        [IDL.Principal, IDL.Principal],
+        [IDL.Vec(Message)],
+        ['query'],
+      ),
+    'getMessagesByUserId' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(Message)],
+        ['query'],
+      ),
+    'getPlatformEarnings' : IDL.Func([], [IDL.Int], ['query']),
     'getUserBookings' : IDL.Func(
         [IDL.Principal],
         [IDL.Vec(Request)],
+        ['query'],
+      ),
+    'getUserMessageThreads' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(MessageThreadInfo)],
         ['query'],
       ),
     'getUserProfile' : IDL.Func(
@@ -153,8 +285,10 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'sendMessage' : IDL.Func([Message], [], []),
     'submitBookingRequest' : IDL.Func([Request], [], []),
     'updateBookingRequestStatus' : IDL.Func([IDL.Text, Status], [], []),
+    'updateMonetizationConfig' : IDL.Func([Config], [], []),
   });
 };
 

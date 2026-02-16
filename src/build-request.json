@@ -1,164 +1,118 @@
 {
   "kind": "build_request",
-  "title": "Adult companionship directory & booking website/app (Playboy-style aesthetic)",
+  "title": "Enable self-service profile creation with ₹10 one-time fee and free matched messaging",
   "projectName": "Velvet Companions",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Implement Internet Identity sign-in and basic user roles (guest, signed-in user, admin) to control access to creating/editing companion profiles and reviewing booking requests.",
+      "id": "REQ-14",
+      "text": "Add a self-service companion profile creation/editing flow for authenticated non-admin users so they can create and manage their own companion profile without using the admin profile editor.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages-4"
         ],
         "quotes": [
-          "I wanna create app and website for Playboy gigolo escorts so create like that"
+          "Yes people should be able to create their own profile"
         ]
       },
       "acceptanceCriteria": [
-        "Users can sign in and sign out using Internet Identity.",
-        "Unauthenticated users can browse public pages but cannot create or submit bookings if the product requires sign-in (define which actions require sign-in and enforce consistently).",
-        "An admin role exists and can be granted by a backend-maintained allowlist of principals.",
-        "Admin-only UI actions are hidden/disabled for non-admin users and are enforced on the backend as well."
+        "A signed-in (non-admin) user can create a companion profile tied to their Principal without accessing any /admin routes.",
+        "A signed-in (non-admin) user can update their own companion profile fields (display name, description, photo URL, category, languages, and other existing fields as applicable).",
+        "A signed-in (non-admin) user cannot create/edit a companion profile for a different Principal.",
+        "Existing admin profile management (list/edit/status changes) continues to work as-is."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Create public-facing pages to browse and view individual companion profiles in a luxury magazine-inspired style (strictly non-explicit, adult-oriented branding only).",
-      "target": "frontend",
+      "id": "REQ-15",
+      "text": "Enforce a one-time ₹10 fee to create a companion profile: the first time a Principal creates a companion profile, the backend must require a \"fee confirmation\" input and record ₹10 as platform earnings; subsequent edits by the same Principal must not charge again.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages-4"
         ],
         "quotes": [
-          "I wanna create app and website for Playboy gigolo escorts so create like that"
+          "only to create their profile they should pay 10rupees each"
         ]
       },
       "acceptanceCriteria": [
-        "A home/landing page exists with a clear brand presentation and a call-to-action to browse companions.",
-        "A browse/search page lists companions with photo, display name, location, and headline tagline.",
-        "A profile detail page shows gallery image(s), bio, services offered (worded as legal companionship categories), and availability overview.",
-        "All user-facing text is in English.",
-        "No explicit sexual content or pornography is displayed; copy is framed as legal adult companionship."
+        "If a signed-in user has never created a companion profile before, attempting to create one without confirming the fee fails with a clear error message.",
+        "If a signed-in user confirms the fee, the profile is created and platform earnings increase by exactly 10 (rupees) one time for that Principal.",
+        "If the same signed-in user edits their existing profile later, no additional ₹10 is added to platform earnings.",
+        "Admin earnings dashboard continues to show updated platform earnings totals after user-paid profile creation events."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Add companion profile management (create, edit, publish/unpublish) for authenticated admins, including moderation controls to remove or hide profiles.",
+      "id": "REQ-16",
+      "text": "Add a user-facing UI to create a companion profile (non-admin) that clearly shows the one-time ₹10 creation fee, collects the required profile fields, and submits to the new self-service backend APIs.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-4"
+        ],
+        "quotes": [
+          "Yes people should be able to create their own profile",
+          "only to create their profile they should pay 10rupees each"
+        ]
+      },
+      "acceptanceCriteria": [
+        "There is a non-admin route/page (not under /admin) where signed-in users can create their companion profile.",
+        "The UI includes explicit English text stating: \"One-time fee: ₹10 to create your profile\" before submission.",
+        "The UI blocks submission until required fields are filled, and shows backend errors using the existing error formatting/toast patterns.",
+        "After successful creation, the user is routed to a sensible page (e.g., their profile view) and relevant React Query caches are invalidated so browse/profile pages reflect the new profile."
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Implement free in-app messaging between matched users, where messaging access is only granted to users who have a valid match relationship, and sending/reading messages does not create any fees or modify platform earnings.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages-4"
+        ],
+        "quotes": [
+          "chat must be free for all matches of people's"
         ]
       },
       "acceptanceCriteria": [
-        "Admin can create a companion profile with fields: display name, headline, bio, location, age (18+), photos (URLs or uploaded static assets), tags/categories, and status (published/unpublished).",
-        "Published profiles appear on public browse pages; unpublished profiles do not.",
-        "Admin can edit and delete profiles.",
-        "Backend validates required fields and enforces 18+ requirement on stored profiles."
+        "The backend has persistent message storage and APIs to send and list messages for a conversation, with authorization checks so only matched participants can access the conversation.",
+        "The frontend has a basic inbox/conversation UI that allows matched users to view message history and send new messages.",
+        "No backend code path for messaging increments platform earnings or depends on monetization configuration.",
+        "If two users are not matched, attempts to open a conversation or send a message are rejected with a clear English error."
       ]
     },
     {
-      "id": "REQ-4",
-      "text": "Implement a booking request flow where users can submit a request to a selected companion; admins can review, accept/reject, and track status (no real-time chat).",
+      "id": "REQ-18",
+      "text": "Define and implement what constitutes a \"match\" for messaging access using existing domain objects, and expose backend query APIs for the frontend to determine which conversations a user is allowed to access.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages-4"
+        ],
+        "quotes": [
+          "matches of people's"
         ]
       },
       "acceptanceCriteria": [
-        "From a companion profile page, a user can open a booking request form capturing: preferred date/time, duration, location/city, and a free-text note.",
-        "Submitting creates a booking request with a status lifecycle (e.g., pending/accepted/rejected/cancelled).",
-        "Admin can view a list of booking requests, filter by status, and open a detail view.",
-        "Admin can accept or reject a request; status updates are persisted and reflected in the UI.",
-        "No WebSockets or real-time messaging is included; communication is handled via status updates and optional contact instructions text."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Add legal/compliance UX: age gate, Terms/Disclaimer page, and clear “18+ only” indicators throughout the app.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "First-time visitors are shown an age gate (confirm 18+) before viewing profiles; the choice is remembered locally.",
-        "A dedicated Terms/Disclaimer page exists with non-explicit language (adult companionship, legality varies, no solicitation of illegal services).",
-        "Primary navigation/footer includes links to Terms/Disclaimer and Privacy basics.",
-        "Profile pages display an “18+ only” notice."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Define and apply a coherent visual theme consistent across all pages: a black/cream/gold luxury editorial aesthetic with strong typography, high-contrast layout, and “magazine spread” components.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A consistent color palette and typography scale is used across the app.",
-        "Buttons, cards, forms, and navigation follow the same styling rules across pages.",
-        "The UI avoids default template look and feels intentionally branded without using blue/purple as primary colors."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Persist all core data in the Motoko backend (profiles, booking requests, admin allowlist) with stable query/update APIs suitable for React Query usage.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes query methods for listing published profiles and fetching a profile by id.",
-        "Backend exposes admin-only update methods for creating/updating/publishing/deleting profiles.",
-        "Backend exposes update methods for creating booking requests and admin-only methods for updating booking status.",
-        "All authorization checks are enforced in backend methods (principal-based)."
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Generate and include required static brand assets (logo + hero background) and render them in the UI from frontend/public/assets/generated (no backend image serving).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Generated images are added under frontend/public/assets/generated with the specified filenames.",
-        "Landing page uses the hero background image in a performant way (responsive, cropped appropriately).",
-        "Brand logo is shown in header/navigation and optionally in the footer."
+        "The backend defines a deterministic match rule based on existing stored data (e.g., derived from booking requests/statuses) and enforces it consistently for messaging authorization.",
+        "The frontend can fetch and display a list of allowed conversations (or allowed matched counterparts) for the signed-in user.",
+        "Messaging UI only shows/permits conversations that the backend authorizes for the caller."
       ]
     }
   ],
   "constraints": [
-    "Use only the provided stack: Motoko single-actor backend and React + TypeScript + Tailwind + Shadcn + React Query frontend.",
-    "Do not edit files in frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui (compose instead).",
-    "No WebSockets/real-time chat; implement non-real-time flows only.",
-    "No third-party authentication providers; only Internet Identity.",
-    "All user-facing text must be in English.",
-    "Keep content non-explicit and include 18+ gating and disclaimers; do not add pornographic or explicit sexual content."
+    "Backend must remain a single Motoko actor in backend/main.mo; only add backend/migration.mo if upgrading stable state requires it.",
+    "Do not edit files under frontend/src/components/ui, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx (immutable paths). Compose new components/pages instead.",
+    "Use English for all user-facing UI text.",
+    "Do not introduce third-party authentication providers; Internet Identity remains the only auth method."
   ],
   "nonGoals": [
-    "Payment processing (e.g., Stripe) unless explicitly requested later.",
-    "Location maps/GPS features.",
-    "Third-party messaging/SMS/email integration.",
-    "User-to-user real-time chat.",
-    "Explicit adult content or pornography."
+    "Implementing real payment processing for ₹10 (e.g., UPI/Stripe/credit cards) or integrating external payment gateways.",
+    "Real-time chat via WebSockets/Socket.io/push notifications; messaging may be implemented via standard request/response with polling or manual refresh.",
+    "Adding location services (GPS/maps) or social media integrations."
   ],
   "imageRequirements": {
-    "required": [
-      "Minimal luxury wordmark logo, black/cream/gold, serif typography (logo-wordmark.dim_512x192.png)",
-      "High-contrast editorial hero background texture/pattern, dark with subtle gold accents (hero-background.dim_1920x1080.png)"
-    ],
+    "required": [],
     "edits": []
   }
 }

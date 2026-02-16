@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useGetAllBookings, useUpdateBookingStatus } from '../../hooks/useQueries';
+import { useGetAllBookings, useUpdateBookingStatus, EARNINGS_QUERY_KEYS } from '../../hooks/useQueries';
 import { EditorialSection, EditorialHeadline } from '../../components/layout/EditorialSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,18 +8,24 @@ import { ArrowLeft, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatError } from '../../lib/errorFormatting';
 import { Status } from '../../backend';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AdminBookingDetailPage() {
   const navigate = useNavigate();
   const { bookingId } = useParams({ from: '/admin/bookings/$bookingId' });
   const { data: bookings = [] } = useGetAllBookings();
   const updateStatus = useUpdateBookingStatus();
+  const queryClient = useQueryClient();
 
   const booking = bookings.find(b => b.id === bookingId);
 
   const handleStatusUpdate = async (status: Status) => {
     try {
       await updateStatus.mutateAsync({ requestId: bookingId, status });
+      
+      // Invalidate earnings queries after booking status change
+      queryClient.invalidateQueries({ queryKey: EARNINGS_QUERY_KEYS.platformEarnings });
+      
       toast.success('Booking status updated');
     } catch (error) {
       toast.error(formatError(error));
@@ -60,6 +66,7 @@ export default function AdminBookingDetailPage() {
   };
 
   const isPending = booking.status === Status.pending;
+  const isAccepted = booking.status === Status.accepted;
 
   return (
     <EditorialSection>
@@ -140,6 +147,22 @@ export default function AdminBookingDetailPage() {
                 >
                   <X className="h-4 w-4" />
                   Reject Booking
+                </Button>
+              </div>
+            </>
+          )}
+
+          {isAccepted && (
+            <>
+              <Separator />
+              <div className="flex justify-end">
+                <Button
+                  className="gap-2"
+                  onClick={() => handleStatusUpdate(Status.completed)}
+                  disabled={updateStatus.isPending}
+                >
+                  <Check className="h-4 w-4" />
+                  Mark as Completed
                 </Button>
               </div>
             </>

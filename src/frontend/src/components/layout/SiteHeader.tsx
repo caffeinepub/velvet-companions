@@ -2,12 +2,12 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useAuthz } from '../../hooks/useAuthz';
 import LoginButton from '../auth/LoginButton';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Shield } from 'lucide-react';
+import { Menu, X, Shield, MessageCircle, User } from 'lucide-react';
 import { useState } from 'react';
 
 export default function SiteHeader() {
   const navigate = useNavigate();
-  const { isAdmin } = useAuthz();
+  const { isAdmin, isAuthenticated } = useAuthz();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -29,6 +29,24 @@ export default function SiteHeader() {
             >
               Browse
             </Link>
+            {isAuthenticated && !isAdmin && (
+              <>
+                <Link 
+                  to="/my-profile" 
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary"
+                >
+                  <User className="h-3 w-3" />
+                  My Profile
+                </Link>
+                <Link 
+                  to="/messages" 
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary"
+                >
+                  <MessageCircle className="h-3 w-3" />
+                  Messages
+                </Link>
+              </>
+            )}
             {isAdmin && (
               <>
                 <Link 
@@ -44,6 +62,20 @@ export default function SiteHeader() {
                 >
                   <Shield className="h-3 w-3" />
                   Bookings
+                </Link>
+                <Link 
+                  to="/admin/earnings" 
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary"
+                >
+                  <Shield className="h-3 w-3" />
+                  Earnings
+                </Link>
+                <Link 
+                  to="/admin/monetization" 
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary"
+                >
+                  <Shield className="h-3 w-3" />
+                  Settings
                 </Link>
               </>
             )}
@@ -77,6 +109,26 @@ export default function SiteHeader() {
             >
               Browse
             </Link>
+            {isAuthenticated && !isAdmin && (
+              <>
+                <Link 
+                  to="/my-profile" 
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <User className="h-3 w-3" />
+                  My Profile
+                </Link>
+                <Link 
+                  to="/messages" 
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <MessageCircle className="h-3 w-3" />
+                  Messages
+                </Link>
+              </>
+            )}
             {isAdmin && (
               <>
                 <Link 
@@ -94,6 +146,22 @@ export default function SiteHeader() {
                 >
                   <Shield className="h-3 w-3" />
                   Manage Bookings
+                </Link>
+                <Link 
+                  to="/admin/earnings" 
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Shield className="h-3 w-3" />
+                  Earnings Dashboard
+                </Link>
+                <Link 
+                  to="/admin/monetization" 
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Shield className="h-3 w-3" />
+                  Monetization Settings
                 </Link>
               </>
             )}

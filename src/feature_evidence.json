@@ -2,111 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-internet-identity-sign-in-and-basic-user-roles-guest-signed-in-user-admin-to-control-access-to-creating-editing-companion-profiles-and-reviewing-booking-requests",
-      "featureTitle": "Implement Internet Identity sign-in and basic user roles (guest, signed-in user, admin) to control access to creating/editing companion profiles and reviewing booking requests.",
+      "featureId": "feature-add-a-self-service-companion-profile-creation-editing-flow-for-authenticated-non-admin-users-so-they-can-create-and-manage-their-own-companion-profile-without-using-the-admin-profile-editor",
+      "featureTitle": "Add a self-service companion profile creation/editing flow for authenticated non-admin users so they can create and manage their own companion profile without using the admin profile editor.",
       "files": [
         "frontend/src/App.tsx",
-        "frontend/src/components/auth/LoginButton.tsx",
-        "frontend/src/components/auth/ProfileSetupModal.tsx",
-        "frontend/src/components/guards/RequireAdmin.tsx",
-        "frontend/src/components/guards/RequireAuth.tsx",
-        "frontend/src/hooks/useAuthz.ts",
-        "frontend/src/lib/errorFormatting.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-public-facing-pages-to-browse-and-view-individual-companion-profiles-in-a-luxury-magazine-inspired-style-strictly-non-explicit-adult-oriented-branding-only",
-      "featureTitle": "Create public-facing pages to browse and view individual companion profiles in a luxury magazine-inspired style (strictly non-explicit, adult-oriented branding only).",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/companions/CompanionCard.tsx",
-        "frontend/src/components/companions/CompanionGallery.tsx",
-        "frontend/src/pages/BrowseCompanionsPage.tsx",
-        "frontend/src/pages/CompanionProfilePage.tsx",
-        "frontend/src/pages/LandingPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-companion-profile-management-create-edit-publish-unpublish-for-authenticated-admins-including-moderation-controls-to-remove-or-hide-profiles",
-      "featureTitle": "Add companion profile management (create, edit, publish/unpublish) for authenticated admins, including moderation controls to remove or hide profiles.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/admin/ProfileStatusBadge.tsx",
-        "frontend/src/pages/admin/AdminProfileEditorPage.tsx",
-        "frontend/src/pages/admin/AdminProfilesPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-a-booking-request-flow-where-users-can-submit-a-request-to-a-selected-companion-admins-can-review-accept-reject-and-track-status-no-real-time-chat",
-      "featureTitle": "Implement a booking request flow where users can submit a request to a selected companion; admins can review, accept/reject, and track status (no real-time chat).",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/bookings/BookingRequestDialog.tsx",
-        "frontend/src/pages/CompanionProfilePage.tsx",
-        "frontend/src/pages/admin/AdminBookingDetailPage.tsx",
-        "frontend/src/pages/admin/AdminBookingsPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-legal-compliance-ux-age-gate-terms-disclaimer-page-and-clear-18-only-indicators-throughout-the-app",
-      "featureTitle": "Add legal/compliance UX: age gate, Terms/Disclaimer page, and clear “18+ only” indicators throughout the app.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/compliance/AgeGateModal.tsx",
-        "frontend/src/components/guards/RequireAgeGate.tsx",
-        "frontend/src/components/layout/SiteFooter.tsx",
         "frontend/src/components/layout/SiteHeader.tsx",
-        "frontend/src/pages/CompanionProfilePage.tsx",
-        "frontend/src/pages/PrivacyPage.tsx",
-        "frontend/src/pages/TermsDisclaimerPage.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/MyCompanionProfilePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -117,20 +19,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-5"
+        "REQ-14"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-define-and-apply-a-coherent-visual-theme-consistent-across-all-pages-a-black-cream-gold-luxury-editorial-aesthetic-with-strong-typography-high-contrast-layout-and-magazine-spread-components",
-      "featureTitle": "Define and apply a coherent visual theme consistent across all pages: a black/cream/gold luxury editorial aesthetic with strong typography, high-contrast layout, and “magazine spread” components.",
+      "featureId": "feature-enforce-a-one-time-10-fee-to-create-a-companion-profile-the-first-time-a-principal-creates-a-companion-profile-the-backend-must-require-a-fee-confirmation-input-and-record-10-as-platform-earnings-subsequent-edits-by-the-same-principal-must-not-charge-again",
+      "featureTitle": "Enforce a one-time ₹10 fee to create a companion profile: the first time a Principal creates a companion profile, the backend must require a \"fee confirmation\" input and record ₹10 as platform earnings; subsequent edits by the same Principal must not charge again.",
       "files": [
-        "frontend/src/components/layout/EditorialSection.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/BrowseCompanionsPage.tsx",
-        "frontend/src/pages/CompanionProfilePage.tsx",
-        "frontend/src/pages/LandingPage.tsx",
-        "frontend/tailwind.config.js"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/lib/errorFormatting.ts",
+        "frontend/src/pages/MyCompanionProfilePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -141,17 +40,40 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-6"
+        "REQ-15"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-generate-and-include-required-static-brand-assets-logo-hero-background-and-render-them-in-the-ui-from-frontend-public-assets-generated-no-backend-image-serving",
-      "featureTitle": "Generate and include required static brand assets (logo + hero background) and render them in the UI from frontend/public/assets/generated (no backend image serving).",
+      "featureId": "feature-add-a-user-facing-ui-to-create-a-companion-profile-non-admin-that-clearly-shows-the-one-time-10-creation-fee-collects-the-required-profile-fields-and-submits-to-the-new-self-service-backend-apis",
+      "featureTitle": "Add a user-facing UI to create a companion profile (non-admin) that clearly shows the one-time ₹10 creation fee, collects the required profile fields, and submits to the new self-service backend APIs.",
       "files": [
-        "frontend/src/components/layout/SiteFooter.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/MyCompanionProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-16"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-free-in-app-messaging-between-matched-users-where-messaging-access-is-only-granted-to-users-who-have-a-valid-match-relationship-and-sending-reading-messages-does-not-create-any-fees-or-modify-platform-earnings",
+      "featureTitle": "Implement free in-app messaging between matched users, where messaging access is only granted to users who have a valid match relationship, and sending/reading messages does not create any fees or modify platform earnings.",
+      "files": [
+        "frontend/src/App.tsx",
         "frontend/src/components/layout/SiteHeader.tsx",
-        "frontend/src/pages/LandingPage.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/messages/MessagesConversationPage.tsx",
+        "frontend/src/pages/messages/MessagesInboxPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -162,7 +84,28 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-8"
+        "REQ-17"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-define-and-implement-what-constitutes-a-match-for-messaging-access-using-existing-domain-objects-and-expose-backend-query-apis-for-the-frontend-to-determine-which-conversations-a-user-is-allowed-to-access",
+      "featureTitle": "Define and implement what constitutes a \"match\" for messaging access using existing domain objects, and expose backend query APIs for the frontend to determine which conversations a user is allowed to access.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/messages/MessagesConversationPage.tsx",
+        "frontend/src/pages/messages/MessagesInboxPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
       ],
       "confidence": "high"
     }

@@ -1,120 +1,70 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T21:15:36.905Z",
-  "summary": "Diff adds a Motoko backend with companion profiles, booking requests, and access-control mixins, plus a React/TanStack Router frontend with landing/browse/profile/admin routes, age gate, auth/admin guards, booking request dialog, and luxury-themed styling. Several core spec fields/behaviors are either not evidenced or diverge from requested data models.",
+  "generatedAt": "2026-02-16T21:38:51.815Z",
+  "summary": "Diff adds backend stable-state migration for tracking one-time companion profile fee payment, introduces self-service \"My Profile\" page and related React Query mutation, and adds basic messaging inbox/conversation pages with new backend message/match types. Some acceptance-criteria details are not clearly evidenced in the truncated diff (notably the explicit on-page fee text and certain backend authorization/fee enforcement behaviors).",
   "missing_requirements": [
     {
-      "id": "REQ-3",
-      "requirement": "Admin companion profile management must support fields: display name, headline, bio, location, age (18+), photos (URLs or static assets), tags/categories, and status (published/unpublished), with backend validation including 18+ enforcement.",
-      "reason": "Backend Profile type shown does not include headline, bio, location, age, photos array, tags, or published/unpublished status; and no evidence of 18+ validation. Frontend card uses description/category/languages rather than required fields.",
+      "id": "REQ-16",
+      "requirement": "UI includes explicit English text stating: \"One-time fee: ₹10 to create your profile\" before submission.",
+      "reason": "The MyCompanionProfilePage excerpt shows fee confirmation logic and toast text, but the required exact on-page phrase is not visible in the provided truncated content.",
       "evidence": [
-        "backend/main.mo",
-        "frontend/src/components/companions/CompanionCard.tsx"
+        "frontend/src/pages/MyCompanionProfilePage.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "Admin can delete profiles (moderation remove/hide) and unpublished profiles must not appear publicly.",
-      "reason": "Diff shows createOrUpdateProfile and adminUpdateProfileStatus, plus queries named getActiveProfiles/getAllProfiles on frontend, but no evidenced delete API or explicit published/unpublished behavior in the shown backend snippet (status values are active/inactive/review, not published/unpublished).",
+      "id": "REQ-15",
+      "requirement": "Backend must fail profile creation without fee confirmation for first-time creators, record exactly +10 platform earnings once per Principal, and not charge again on edits.",
+      "reason": "Backend state includes a new `companionFeePaid` map and migration initializes it, but the diff snippet does not show the implementation of `createOrUpdateCallerCompanionProfile` (or equivalent) enforcing the one-time fee and platform earnings increment behavior.",
       "evidence": [
-        "backend/main.mo",
-        "frontend/src/hooks/useQueries.ts"
+        "backend/main.mo (truncated)",
+        "backend/migration.mo"
       ]
     },
     {
-      "id": "REQ-4",
-      "requirement": "Booking request status lifecycle should include cancelled (e.g., pending/accepted/rejected/cancelled) and be persisted.",
-      "reason": "Backend BookingRequest.Status shown includes pending/accepted/rejected/completed, but no cancelled status is evidenced.",
+      "id": "REQ-14",
+      "requirement": "Non-admin users can only create/edit the companion profile tied to their own Principal and cannot create/edit for other Principals; admin management continues to work as-is.",
+      "reason": "Frontend page sets `principal: identity.getPrincipal()` in the payload, but the diff does not show backend-side authorization preventing a caller from submitting a profile with a different Principal or editing another user's profile.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/pages/MyCompanionProfilePage.tsx (truncated)",
+        "backend/main.mo (truncated)"
       ]
     },
     {
-      "id": "REQ-7",
-      "requirement": "Backend must expose query methods for listing published profiles and fetching a profile by id; and admin-only update methods for creating/updating/publishing/deleting profiles; and admin-only methods for updating booking status.",
-      "reason": "Frontend hooks call getActiveProfiles/getAllProfiles/submitBookingRequest/getAllBookings, but the diff snippet does not evidence profile-by-id query, delete profile, publish/unpublish APIs, or booking status update APIs (backend file is truncated).",
+      "id": "REQ-17",
+      "requirement": "Messaging APIs must enforce that only matched participants can send/list messages; non-matched attempts are rejected with a clear English error; messaging must not modify platform earnings.",
+      "reason": "Backend defines `messages` storage and a `hasMatchRelationship` helper, and frontend has inbox/conversation UI, but the diff snippet does not show the actual message send/list API implementations and their authorization checks or confirmation that no earnings paths are touched.",
       "evidence": [
-        "backend/main.mo",
-        "frontend/src/hooks/useQueries.ts"
+        "backend/main.mo (truncated)",
+        "frontend/src/pages/messages/MessagesConversationPage.tsx (truncated)",
+        "frontend/src/pages/messages/MessagesInboxPage.tsx (truncated)",
+        "frontend/src/lib/errorFormatting.ts"
       ]
     },
     {
-      "id": "REQ-8",
-      "requirement": "Generated images must be added under frontend/public/assets/generated with specified filenames (logo-wordmark.dim_512x192.png, hero-background.dim_1920x1080.png).",
-      "reason": "UI references the logo path, but the diff summary does not show the actual asset files being added (they may be in omitted files). The hero background usage is also not evidenced in the provided snippets.",
+      "id": "REQ-18",
+      "requirement": "Expose backend query APIs for the frontend to determine allowed conversations/matched counterparts and ensure the messaging UI only shows/permits authorized conversations.",
+      "reason": "Frontend uses `useGetUserMessageThreads` and `useGetMessagesByParticipants`, but the backend query methods that define/return the authorized conversation list are not shown in the truncated backend diff.",
       "evidence": [
-        "frontend/src/components/layout/SiteHeader.tsx",
-        "frontend/src/components/layout/SiteFooter.tsx",
-        "frontend/src/App.tsx"
+        "frontend/src/hooks/useQueries.ts (truncated)",
+        "frontend/src/pages/messages/MessagesInboxPage.tsx (truncated)",
+        "backend/main.mo (truncated)"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "User profile storage and mandatory profile setup modal (name/email/phone) for signed-in users.",
-      "reason": "BuildRequest does not ask for user profile objects or a profile-setup onboarding modal; it focuses on roles, companion profiles, and bookings.",
-      "evidence": [
-        "backend/main.mo",
-        "frontend/src/components/auth/ProfileSetupModal.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "description": "Companion profile fields not requested: principal owner, priceRange, languages, and multi-dimension ratings.",
-      "reason": "Requested companion profile schema differs (headline/bio/location/age/photos/tags/status). Added extra fields are not in the BuildRequest.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Secret-based access control initialization via URL parameter (caffeineAdminToken) and a footer attribution link to caffeine.ai with tracking parameters.",
-      "reason": "Not requested in requirements; admin allowlist was required to be backend-maintained by principal allowlist, not initialized via URL secret; external attribution/tracking link not requested.",
-      "evidence": [
-        "frontend/src/hooks/useActor.ts",
-        "frontend/src/components/layout/SiteFooter.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.68,
+  "hallucinated_features": [],
+  "confidence": 0.56,
   "changed_files": [
-    "all_files_summary.json",
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.css",
-    "frontend/index.html",
     "frontend/src/App.tsx",
-    "frontend/src/components/admin/ProfileStatusBadge.tsx",
-    "frontend/src/components/auth/LoginButton.tsx",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
-    "frontend/src/components/bookings/BookingRequestDialog.tsx",
-    "frontend/src/components/companions/CompanionCard.tsx",
-    "frontend/src/components/companions/CompanionGallery.tsx",
-    "frontend/src/components/compliance/AgeGateModal.tsx",
-    "frontend/src/components/guards/RequireAdmin.tsx",
-    "frontend/src/components/guards/RequireAgeGate.tsx",
-    "frontend/src/components/guards/RequireAuth.tsx",
-    "frontend/src/components/layout/EditorialSection.tsx",
-    "frontend/src/components/layout/SiteFooter.tsx",
     "frontend/src/components/layout/SiteHeader.tsx",
-    "frontend/src/hooks/useActor.ts",
-    "frontend/src/hooks/useAuthz.ts",
-    "frontend/src/hooks/useInternetIdentity.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
     "frontend/src/lib/errorFormatting.ts",
-    "frontend/src/main.tsx",
-    "frontend/src/pages/BrowseCompanionsPage.tsx",
-    "frontend/src/pages/CompanionProfilePage.tsx",
-    "frontend/src/pages/LandingPage.tsx",
-    "frontend/src/pages/PrivacyPage.tsx",
-    "frontend/src/pages/TermsDisclaimerPage.tsx",
-    "frontend/src/pages/admin/AdminBookingDetailPage.tsx",
-    "frontend/src/pages/admin/AdminBookingsPage.tsx",
-    "frontend/src/pages/admin/AdminProfileEditorPage.tsx",
-    "frontend/src/pages/admin/AdminProfilesPage.tsx",
-    "frontend/src/utils/urlParams.ts",
-    "frontend/tailwind.config.js",
+    "frontend/src/pages/MyCompanionProfilePage.tsx",
+    "frontend/src/pages/messages/MessagesConversationPage.tsx",
+    "frontend/src/pages/messages/MessagesInboxPage.tsx",
     "project_state.json"
   ]
 }

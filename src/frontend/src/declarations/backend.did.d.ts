@@ -10,6 +10,35 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Config {
+  'leadFee' : [] | [bigint],
+  'model' : Model,
+  'featuredPlacementFee' : [] | [bigint],
+  'commissionRate' : [] | [bigint],
+  'listingFee' : [] | [bigint],
+}
+export interface Message {
+  'id' : string,
+  'status' : { 'pending' : null } |
+    { 'rejected' : null } |
+    { 'accepted' : null },
+  'content' : string,
+  'sender' : Principal,
+  'messageType' : Type,
+  'timestamp' : Time,
+  'bookingRequestId' : [] | [string],
+  'receiver' : Principal,
+}
+export interface MessageThreadInfo {
+  'requester' : Principal,
+  'companionId' : string,
+  'companionPrincipal' : Principal,
+}
+export type Model = { 'leadFee' : null } |
+  { 'none' : null } |
+  { 'featuredPlacement' : null } |
+  { 'commission' : null } |
+  { 'listingFee' : null };
 export interface Profile {
   'id' : string,
   'status' : Status__1,
@@ -44,6 +73,9 @@ export type Status__1 = { 'review' : null } |
   { 'active' : null } |
   { 'inactive' : null };
 export type Time = bigint;
+export type Type = { 'offer' : null } |
+  { 'message' : null } |
+  { 'bookingRequest' : null };
 export interface UserProfile {
   'name' : string,
   'email' : [] | [string],
@@ -56,18 +88,33 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'adminUpdateProfileStatus' : ActorMethod<[string, Status__1], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'canUserAccessMessages' : ActorMethod<[Principal, Principal], boolean>,
+  'createOrUpdateCallerCompanionProfile' : ActorMethod<
+    [Profile, boolean],
+    undefined
+  >,
   'createOrUpdateProfile' : ActorMethod<[Profile], undefined>,
+  'getActiveMonetizationConfig' : ActorMethod<[], Config>,
   'getActiveProfiles' : ActorMethod<[], Array<Profile>>,
   'getAllBookings' : ActorMethod<[], Array<Request>>,
   'getAllProfiles' : ActorMethod<[], Array<Profile>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getMessagesByParticipants' : ActorMethod<
+    [Principal, Principal],
+    Array<Message>
+  >,
+  'getMessagesByUserId' : ActorMethod<[Principal], Array<Message>>,
+  'getPlatformEarnings' : ActorMethod<[], bigint>,
   'getUserBookings' : ActorMethod<[Principal], Array<Request>>,
+  'getUserMessageThreads' : ActorMethod<[Principal], Array<MessageThreadInfo>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'sendMessage' : ActorMethod<[Message], undefined>,
   'submitBookingRequest' : ActorMethod<[Request], undefined>,
   'updateBookingRequestStatus' : ActorMethod<[string, Status], undefined>,
+  'updateMonetizationConfig' : ActorMethod<[Config], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

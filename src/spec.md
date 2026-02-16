@@ -1,16 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Build a luxury editorial-style (non-explicit) adult companionship directory with Internet Identity auth, admin-managed profiles, and a booking request workflow with 18+ compliance UX.
+**Goal:** Let signed-in non-admin users create and manage their own companion profiles with a one-time ₹10 creation fee, and enable free in-app messaging only between matched users.
 
 **Planned changes:**
-- Add Internet Identity sign-in/sign-out and roles (guest, signed-in user, admin) with admin allowlist enforcement in the backend and reflected in the UI.
-- Create public pages: landing page, companion browse/search listing, and companion profile detail pages (English-only, non-explicit copy).
-- Implement admin companion profile management: create/edit/delete, publish/unpublish, and moderation controls; validate required fields and enforce 18+ on stored profiles.
-- Implement booking request flow: users submit requests from a profile (date/time, duration, location/city, note); admins review, filter, and accept/reject with persisted status lifecycle (no real-time chat).
-- Add legal/compliance UX: first-visit 18+ age gate (remembered locally), Terms/Disclaimer page, navigation/footer links, and “18+ only” indicators on profile pages.
-- Apply a consistent black/cream/gold luxury editorial theme across components (typography, layout, cards, forms, navigation) using Tailwind/Shadcn composition.
-- Persist core data in the Motoko backend with query/update APIs suitable for React Query: profiles, booking requests, and admin allowlist; enforce principal-based authorization in backend methods.
-- Add generated static brand assets (logo + hero background) under `frontend/public/assets/generated` and render them in the UI.
+- Add non-admin self-service companion profile create/edit flow tied to the signed-in Principal (no /admin routes), preventing users from modifying others’ profiles.
+- Enforce a one-time ₹10 fee confirmation on first-time companion profile creation, record ₹10 platform earnings once per Principal, and keep subsequent edits free.
+- Add a non-admin UI page/route to create a companion profile that displays “One-time fee: ₹10 to create your profile”, validates required fields, shows errors via existing patterns, and routes after success with relevant cache invalidation.
+- Implement persistent in-app messaging with APIs and basic UI (inbox + conversation) restricted to matched users only, with clear errors for non-matched access.
+- Define and enforce a deterministic “match” rule using existing stored domain data, and add backend query APIs so the frontend can list only authorized conversations/matched counterparts.
 
-**User-visible outcome:** Visitors can pass an 18+ age gate, browse a magazine-styled companion directory, view profile details, and submit booking requests (as allowed by sign-in rules), while admins can sign in, manage/publish profiles, and review/accept/reject booking requests.
+**User-visible outcome:** Signed-in users can pay/confirm a one-time ₹10 fee to create their own companion profile (and later edit it without further charges), and can view/send free messages only with users they are matched with via the app’s match rules.
