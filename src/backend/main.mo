@@ -40,6 +40,7 @@ actor {
         max : Nat;
       };
       languages : [Text];
+      city : Text;
       ratings : Rating;
     };
 
@@ -135,7 +136,6 @@ actor {
     requester : Principal;
   };
 
-  // Persistent state
   var accessControlState = AccessControl.initState();
   var companionProfiles = Map.empty<Text, CompanionProfile.Profile>();
   var bookingRequests = Map.empty<Text, BookingRequest.Request>();
@@ -143,15 +143,17 @@ actor {
   var messages = Map.empty<Text, Message.Message>();
   var companionFeePaid = Map.empty<Principal, Bool>();
   var platformEarnings : Int = 0;
+
+  // Default to commission model, can be updated by admin
   var activeMonetizationConfig : Monetization.Config = {
     model = #commission;
-    commissionRate = ?10;
-    listingFee = ?15;
-    featuredPlacementFee = ?50;
-    leadFee = ?5;
+    commissionRate = ?30;
+    listingFee = null;
+    featuredPlacementFee = null;
+    leadFee = null;
   };
 
-  // Authorization setup
+  // Authorization
   include MixinAuthorization(accessControlState);
 
   // Helper function to check if two users have a match (booking relationship)
@@ -332,10 +334,11 @@ actor {
           displayName = profile.displayName;
           description = profile.description;
           photoUrl = profile.photoUrl;
-          status;
+          status = status;
           category = profile.category;
           priceRange = profile.priceRange;
           languages = profile.languages;
+          city = profile.city;
           ratings = profile.ratings;
         };
         companionProfiles.add(profileId, updatedProfile);
@@ -375,7 +378,7 @@ actor {
           id = existing.id;
           companionId = existing.companionId;
           requesterId = existing.requesterId;
-          status;
+          status = status;
           requestTime = existing.requestTime;
           scheduledTime = existing.scheduledTime;
           notes = existing.notes;
@@ -485,9 +488,8 @@ actor {
     };
 
     messages.values().toArray().filter(
-      func(message) { 
-        (message.sender == sender and message.receiver == receiver) or
-        (message.sender == receiver and message.receiver == sender)
+      func(message) {
+        (message.sender == sender and message.receiver == receiver) or (message.sender == receiver and message.receiver == sender)
       }
     );
   };

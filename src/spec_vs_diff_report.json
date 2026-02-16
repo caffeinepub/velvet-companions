@@ -1,70 +1,51 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T21:38:51.815Z",
-  "summary": "Diff adds backend stable-state migration for tracking one-time companion profile fee payment, introduces self-service \"My Profile\" page and related React Query mutation, and adds basic messaging inbox/conversation pages with new backend message/match types. Some acceptance-criteria details are not clearly evidenced in the truncated diff (notably the explicit on-page fee text and certain backend authorization/fee enforcement behaviors).",
+  "generatedAt": "2026-02-16T22:17:57.332Z",
+  "summary": "REQ-23 is partially implemented: the backend default active monetization config is set to commission with a 30% rate, and a migration is added to force this config. However, the diff summary does not provide evidence that platform earnings increase by 30% of avgPrice when a booking is marked #completed, nor that getActiveMonetizationConfig() returns the expected values for admins on fresh deploy. REQ-24 is partially evidenced: the Monetization Settings page now pre-fills inputs from the backend config, but the Earnings Dashboard “30% per booking” label change is not visible in the truncated diff.",
   "missing_requirements": [
     {
-      "id": "REQ-16",
-      "requirement": "UI includes explicit English text stating: \"One-time fee: ₹10 to create your profile\" before submission.",
-      "reason": "The MyCompanionProfilePage excerpt shows fee confirmation logic and toast text, but the required exact on-page phrase is not visible in the provided truncated content.",
+      "id": "REQ-23",
+      "requirement": "When an admin updates a booking request status to #completed and the active model is commission, platform earnings increase by (avgPrice * 30) / 100 where avgPrice = (priceRange.min + priceRange.max) / 2 for the booked companion profile.",
+      "reason": "backend/main.mo is truncated before the booking status update/completion logic; no shown code updates platformEarnings on completion using the specified avgPrice formula and commissionRate.",
       "evidence": [
-        "frontend/src/pages/MyCompanionProfilePage.tsx (truncated)"
+        "backend/main.mo (truncated in diff summary)"
       ]
     },
     {
-      "id": "REQ-15",
-      "requirement": "Backend must fail profile creation without fee confirmation for first-time creators, record exactly +10 platform earnings once per Principal, and not charge again on edits.",
-      "reason": "Backend state includes a new `companionFeePaid` map and migration initializes it, but the diff snippet does not show the implementation of `createOrUpdateCallerCompanionProfile` (or equivalent) enforcing the one-time fee and platform earnings increment behavior.",
+      "id": "REQ-23",
+      "requirement": "getActiveMonetizationConfig() returns model = #commission and commissionRate = 30 for admins on a fresh deploy (no prior config updates).",
+      "reason": "The diff shows the default variable initialization and a migration setting activeMonetizationConfig, but does not show the getActiveMonetizationConfig() implementation/return behavior or admin gating.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "backend/migration.mo"
+        "backend/main.mo (truncated in diff summary)"
       ]
     },
     {
-      "id": "REQ-14",
-      "requirement": "Non-admin users can only create/edit the companion profile tied to their own Principal and cannot create/edit for other Principals; admin management continues to work as-is.",
-      "reason": "Frontend page sets `principal: identity.getPrincipal()` in the payload, but the diff does not show backend-side authorization preventing a caller from submitting a profile with a different Principal or editing another user's profile.",
+      "id": "REQ-24",
+      "requirement": "On the Admin Earnings Dashboard page, when the active model is Commission, the label shows \"30% per booking\" (or the current configured percent if changed later).",
+      "reason": "AdminEarningsPage.tsx is truncated before the rendered Active Model label content; no explicit evidence that it displays the commission percent text.",
       "evidence": [
-        "frontend/src/pages/MyCompanionProfilePage.tsx (truncated)",
-        "backend/main.mo (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "requirement": "Messaging APIs must enforce that only matched participants can send/list messages; non-matched attempts are rejected with a clear English error; messaging must not modify platform earnings.",
-      "reason": "Backend defines `messages` storage and a `hasMatchRelationship` helper, and frontend has inbox/conversation UI, but the diff snippet does not show the actual message send/list API implementations and their authorization checks or confirmation that no earnings paths are touched.",
-      "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/pages/messages/MessagesConversationPage.tsx (truncated)",
-        "frontend/src/pages/messages/MessagesInboxPage.tsx (truncated)",
-        "frontend/src/lib/errorFormatting.ts"
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "requirement": "Expose backend query APIs for the frontend to determine allowed conversations/matched counterparts and ensure the messaging UI only shows/permits authorized conversations.",
-      "reason": "Frontend uses `useGetUserMessageThreads` and `useGetMessagesByParticipants`, but the backend query methods that define/return the authorized conversation list are not shown in the truncated backend diff.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)",
-        "frontend/src/pages/messages/MessagesInboxPage.tsx (truncated)",
-        "backend/main.mo (truncated)"
+        "frontend/src/pages/admin/AdminEarningsPage.tsx (truncated in diff summary)"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.56,
+  "hallucinated_features": [
+    {
+      "description": "Added a backend migration module and wired the actor to run migrations (with migration = Migration.run), forcing activeMonetizationConfig via migration.",
+      "reason": "The BuildRequest only asked to set commission-per-booking to 30%; it did not request introducing a migration system/new Motoko module, and this may conflict with the constraint to keep backend logic within backend/main.mo.",
+      "evidence": [
+        "backend/migration.mo",
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/layout/SiteHeader.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/lib/errorFormatting.ts",
-    "frontend/src/pages/MyCompanionProfilePage.tsx",
-    "frontend/src/pages/messages/MessagesConversationPage.tsx",
-    "frontend/src/pages/messages/MessagesInboxPage.tsx",
+    "frontend/src/pages/admin/AdminEarningsPage.tsx",
+    "frontend/src/pages/admin/AdminMonetizationSettingsPage.tsx",
     "project_state.json"
   ]
 }

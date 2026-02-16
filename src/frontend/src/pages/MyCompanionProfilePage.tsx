@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { formatError } from '../lib/errorFormatting';
 import { Status__1 } from '../backend';
-import { Loader2, AlertCircle, IndianRupee } from 'lucide-react';
+import { Loader2, IndianRupee } from 'lucide-react';
 import { EditorialSection, EditorialHeadline, EditorialSubhead } from '../components/layout/EditorialSection';
 
 export default function MyCompanionProfilePage() {
@@ -29,6 +29,7 @@ export default function MyCompanionProfilePage() {
   const [description, setDescription] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [category, setCategory] = useState('');
+  const [city, setCity] = useState('');
   const [languages, setLanguages] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -46,6 +47,7 @@ export default function MyCompanionProfilePage() {
         setDescription(myProfile.description);
         setPhotoUrl(myProfile.photoUrl);
         setCategory(myProfile.category);
+        setCity(myProfile.city || '');
         setLanguages(myProfile.languages.join(', '));
         setMinPrice(myProfile.priceRange.min.toString());
         setMaxPrice(myProfile.priceRange.max.toString());
@@ -62,7 +64,7 @@ export default function MyCompanionProfilePage() {
       return;
     }
 
-    if (!displayName || !description || !category || !minPrice || !maxPrice) {
+    if (!displayName || !description || !category || !city || !minPrice || !maxPrice) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -82,6 +84,7 @@ export default function MyCompanionProfilePage() {
       photoUrl: photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
       status: (existingProfile?.status || Status__1.review) as Status__1,
       category,
+      city,
       priceRange: {
         min: BigInt(minPrice),
         max: BigInt(maxPrice),
@@ -196,12 +199,23 @@ export default function MyCompanionProfilePage() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="city">City *</Label>
+                <Input
+                  id="city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="e.g., Mumbai, Delhi, Bangalore"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="languages">Languages</Label>
                 <Input
                   id="languages"
                   value={languages}
                   onChange={(e) => setLanguages(e.target.value)}
-                  placeholder="English, Hindi, etc. (comma-separated)"
+                  placeholder="e.g., English, Hindi, French (comma-separated)"
                 />
               </div>
 
@@ -231,7 +245,7 @@ export default function MyCompanionProfilePage() {
               </div>
 
               {!isEditing && (
-                <div className="flex items-start space-x-2 rounded-lg border border-primary/30 bg-primary/5 p-4">
+                <div className="flex items-start space-x-2 rounded-md border p-4">
                   <Checkbox
                     id="feeConfirmed"
                     checked={feeConfirmed}
@@ -242,10 +256,10 @@ export default function MyCompanionProfilePage() {
                       htmlFor="feeConfirmed"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
-                      I confirm payment of the one-time ₹10 profile creation fee
+                      I confirm the one-time ₹10 profile creation fee
                     </label>
                     <p className="text-xs text-muted-foreground">
-                      This fee is required to create your profile and will be charged once.
+                      This fee is required to create your profile and helps maintain platform quality.
                     </p>
                   </div>
                 </div>
@@ -253,25 +267,23 @@ export default function MyCompanionProfilePage() {
 
               <div className="flex gap-4">
                 <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate({ to: '/browse' })}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
                   type="submit"
                   disabled={createOrUpdateMutation.isPending || (!isEditing && !feeConfirmed)}
                   className="flex-1"
                 >
-                  {createOrUpdateMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {isEditing ? 'Updating...' : 'Creating...'}
-                    </>
-                  ) : (
-                    <>{isEditing ? 'Update Profile' : 'Create Profile'}</>
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate({ to: '/browse' })}
-                >
-                  Cancel
+                  {createOrUpdateMutation.isPending
+                    ? 'Saving...'
+                    : isEditing
+                      ? 'Update Profile'
+                      : 'Create Profile'}
                 </Button>
               </div>
             </form>

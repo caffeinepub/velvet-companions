@@ -1,13 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Let signed-in non-admin users create and manage their own companion profiles with a one-time ₹10 creation fee, and enable free in-app messaging only between matched users.
+**Goal:** Set the platform’s commission-per-booking monetization to 30% and ensure admin screens reflect the configured commission rate.
 
 **Planned changes:**
-- Add non-admin self-service companion profile create/edit flow tied to the signed-in Principal (no /admin routes), preventing users from modifying others’ profiles.
-- Enforce a one-time ₹10 fee confirmation on first-time companion profile creation, record ₹10 platform earnings once per Principal, and keep subsequent edits free.
-- Add a non-admin UI page/route to create a companion profile that displays “One-time fee: ₹10 to create your profile”, validates required fields, shows errors via existing patterns, and routes after success with relevant cache invalidation.
-- Implement persistent in-app messaging with APIs and basic UI (inbox + conversation) restricted to matched users only, with clear errors for non-matched access.
-- Define and enforce a deterministic “match” rule using existing stored domain data, and add backend query APIs so the frontend can list only authorized conversations/matched counterparts.
+- Update backend default monetization config so the active model is commission with `commissionRate = 30` (percent) on fresh deploys.
+- When an admin marks a booking request as `#completed` and the active model is commission, increase platform earnings by `(avgPrice * 30) / 100`, where `avgPrice = (priceRange.min + priceRange.max) / 2` for the booked companion profile.
+- Update admin UI to read and display the commission rate from the backend config:
+  - Pre-fill the Commission Rate input on the Monetization Settings page with the backend value (30 on fresh deploy).
+  - Show the commission label on the Earnings Dashboard as “30% per booking” (or the currently configured percent).
 
-**User-visible outcome:** Signed-in users can pay/confirm a one-time ₹10 fee to create their own companion profile (and later edit it without further charges), and can view/send free messages only with users they are matched with via the app’s match rules.
+**User-visible outcome:** Admins see a 30% commission setting in Monetization Settings and Earnings Dashboard, and platform earnings increase by 30% of the booking amount when a booking is marked completed.

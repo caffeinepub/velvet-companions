@@ -28,7 +28,7 @@ export default function CompanionCard({ profile }: CompanionCardProps) {
             </Badge>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <MapPin className="h-3 w-3" />
-              <span>{profile.languages[0] || 'International'}</span>
+              <span>{profile.city || 'Unknown'}</span>
             </div>
           </div>
         </CardContent>

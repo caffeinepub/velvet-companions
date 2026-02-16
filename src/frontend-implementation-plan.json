@@ -1,154 +1,25 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Velvet Companions: Self-service companion profiles with one-time ₹10 fee and free matched messaging",
+  "title": "Admin UI: display 30% commission rate from monetization config",
   "requirements": [
     {
-      "id": "REQ-14",
-      "summary": "Add a non-admin self-service companion profile create/edit flow tied to the signed-in Principal (no /admin routes).",
+      "id": "REQ-24",
+      "summary": "Show the active commission rate from the backend monetization config in Admin Monetization Settings and Admin Earnings Dashboard when the Commission model is active.",
       "acceptanceCriteria": [
-        "A signed-in (non-admin) user can create a companion profile tied to their Principal without accessing any /admin routes.",
-        "A signed-in (non-admin) user can update their own companion profile fields (display name, description, photo URL, category, languages, and other existing fields as applicable).",
-        "A signed-in (non-admin) user cannot create/edit a companion profile for a different Principal.",
-        "Existing admin profile management (list/edit/status changes) continues to work as-is."
+        "On the Admin Monetization Settings page, when the active model is Commission, the Commission Rate input is pre-filled with the backend value (30 on a fresh deploy).",
+        "On the Admin Earnings Dashboard page, when the active model is Commission, the label shows \"30% per booking\" (or the current configured percent if changed later)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/MyCompanionProfilePage.tsx",
-          "operation": "create",
-          "description": "Create a user-facing page (not under /admin) that lets an authenticated non-admin create or edit their own companion profile, deriving ownership from the logged-in Internet Identity Principal (do not allow editing a different Principal). Use the selected \"authorization\" component concepts via existing auth hooks (e.g., role checks) to ensure only signed-in users proceed; verify the component's usage instructions before implementing."
+          "path": "frontend/src/pages/admin/AdminMonetizationSettingsPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the Commission Rate input is reliably pre-filled from the backend monetization config when model is Commission by treating 0 as a valid value (avoid truthy checks on bigint fields) and keeping the existing config-to-form hydration behavior aligned with the backend-provided commissionRate (30 on fresh deploy)."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/admin/AdminEarningsPage.tsx",
           "operation": "modify",
-          "description": "Add React Query hooks/mutations for the self-service companion profile flow using the existing backend actor capabilities (including a caller-scoped create/update). Ensure mutations invalidate relevant caches so browse/profile pages refresh. Use existing auth state patterns consistent with the selected \"authorization\" component; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wire the new self-service profile route into the router (not under /admin) and wrap it with existing guards (RequireAuth; optionally also RequireAgeGate for consistency)."
-        },
-        {
-          "path": "frontend/src/components/layout/SiteHeader.tsx",
-          "operation": "modify",
-          "description": "Add a navigation entry for the new self-service profile page, shown only to authenticated non-admin users (use existing role/admin checks). Use the selected \"authorization\" component approach via existing hooks; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-15",
-      "summary": "In the self-service profile UI, require explicit one-time ₹10 fee confirmation on first creation and surface backend errors clearly; do not require it for edits.",
-      "acceptanceCriteria": [
-        "If a signed-in user has never created a companion profile before, attempting to create one without confirming the fee fails with a clear error message.",
-        "If a signed-in user confirms the fee, the profile is created and platform earnings increase by exactly 10 (rupees) one time for that Principal.",
-        "If the same signed-in user edits their existing profile later, no additional ₹10 is added to platform earnings.",
-        "Admin earnings dashboard continues to show updated platform earnings totals after user-paid profile creation events."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/MyCompanionProfilePage.tsx",
-          "operation": "modify",
-          "description": "Add UI state to detect whether the user is creating vs editing, show a fee confirmation control only for first-time creation, and pass the fee-confirmation input into the caller-scoped create/update mutation. Display backend failures using existing toast + error formatting patterns. Use role awareness consistent with the selected \"authorization\" component; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update the self-service create/update mutation wrapper to accept a fee-confirmation flag and, on success, invalidate earnings-related query keys in addition to profile browsing caches so admin earnings totals refresh on next view."
-        },
-        {
-          "path": "frontend/src/lib/errorFormatting.ts",
-          "operation": "modify",
-          "description": "Extend error formatting to provide clear English messaging for fee-confirmation-related failures (and other expected self-service profile errors) while preserving existing authorization error handling."
-        }
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "summary": "Provide a dedicated non-admin page to create a companion profile that clearly states the one-time ₹10 fee, validates required fields, and routes after success.",
-      "acceptanceCriteria": [
-        "There is a non-admin route/page (not under /admin) where signed-in users can create their companion profile.",
-        "The UI includes explicit English text stating: \"One-time fee: ₹10 to create your profile\" before submission.",
-        "The UI blocks submission until required fields are filled, and shows backend errors using the existing error formatting/toast patterns.",
-        "After successful creation, the user is routed to a sensible page (e.g., their profile view) and relevant React Query caches are invalidated so browse/profile pages reflect the new profile."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/MyCompanionProfilePage.tsx",
-          "operation": "modify",
-          "description": "Implement the companion profile form UI for non-admin users: required-field validation, explicit fee text \"One-time fee: ₹10 to create your profile\" shown before submission, and success routing (e.g., to /profile/$profileId using the created profile id generated client-side). Use existing toast patterns and formatError for backend error display."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Ensure the new self-service page route is registered and reachable (not under /admin), and that successful navigation targets (e.g., existing /profile/$profileId) remain wired."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Ensure the self-service mutation invalidates active profile browsing caches so Browse and profile views reflect newly created/updated companion profiles."
-        }
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "summary": "Add frontend inbox + conversation messaging UI that is free and only works for backend-authorized matches, with clear errors when not matched.",
-      "acceptanceCriteria": [
-        "The backend has persistent message storage and APIs to send and list messages for a conversation, with authorization checks so only matched participants can access the conversation.",
-        "The frontend has a basic inbox/conversation UI that allows matched users to view message history and send new messages.",
-        "No backend code path for messaging increments platform earnings or depends on monetization configuration.",
-        "If two users are not matched, attempts to open a conversation or send a message are rejected with a clear English error."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/messages/MessagesInboxPage.tsx",
-          "operation": "create",
-          "description": "Create an authenticated inbox page that lists the signed-in user's allowed message threads (as provided by the backend) and links into a conversation view. Use the selected \"authorization\" component approach via existing auth/role hooks to require sign-in; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/messages/MessagesConversationPage.tsx",
-          "operation": "create",
-          "description": "Create an authenticated conversation page that loads message history for a selected counterpart and allows sending new messages. Handle backend authorization failures (e.g., not matched) by showing clear English errors via existing toast + formatError patterns. Use the selected \"authorization\" component approach via existing hooks; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add React Query hooks for messaging: fetch allowed threads for the caller, fetch messages for a participant pair, and send a message with appropriate cache invalidation/refetch to keep the conversation updated."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wire messaging routes into the router (e.g., /messages and /messages/$counterpartPrincipal) and wrap them with RequireAuth (and optionally RequireAgeGate for consistency with the app's protected areas)."
-        },
-        {
-          "path": "frontend/src/components/layout/SiteHeader.tsx",
-          "operation": "modify",
-          "description": "Add a primary navigation link to the new Messages inbox route, visible only when authenticated. Use the selected \"authorization\" component approach via existing hooks; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "summary": "Use backend-provided match authorization to determine allowed conversations and only show permitted threads/conversations in the UI.",
-      "acceptanceCriteria": [
-        "The backend defines a deterministic match rule based on existing stored data (e.g., derived from booking requests/statuses) and enforces it consistently for messaging authorization.",
-        "The frontend can fetch and display a list of allowed conversations (or allowed matched counterparts) for the signed-in user.",
-        "Messaging UI only shows/permits conversations that the backend authorizes for the caller."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Implement queries that fetch only backend-authorized thread metadata for the caller and (optionally) a per-thread authorization check wrapper for route entry, so the UI can strictly rely on backend authorization for which conversations are accessible."
-        },
-        {
-          "path": "frontend/src/pages/messages/MessagesInboxPage.tsx",
-          "operation": "modify",
-          "description": "Render the inbox strictly from the backend-authorized threads list, showing only permitted counterparts/conversations and no manual free-form conversation creation. Use patterns consistent with the selected \"authorization\" component; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/messages/MessagesConversationPage.tsx",
-          "operation": "modify",
-          "description": "Guard conversation loading/sending by relying on backend authorization; if rejected, present a clear English error and prevent message composition from proceeding."
+          "description": "Ensure the Active Model label renders the commission rate as \"<rate>% per booking\" whenever the active model is Commission, including when the configured rate is 0 (avoid truthy checks on bigint fields) so it always reflects the current backend monetization config value."
         }
       ]
     }

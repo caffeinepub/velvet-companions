@@ -4,12 +4,13 @@ import { EditorialSection, EditorialHeadline } from '../components/layout/Editor
 import CompanionCard from '../components/companions/CompanionCard';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
 
 export default function BrowseCompanionsPage() {
   const { data: profiles = [], isLoading } = useGetActiveProfiles();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [cityFilter, setCityFilter] = useState('');
 
   const categories = useMemo(() => {
     const cats = new Set(profiles.map(p => p.category));
@@ -24,9 +25,12 @@ export default function BrowseCompanionsPage() {
       
       const matchesCategory = categoryFilter === 'all' || profile.category === categoryFilter;
       
-      return matchesSearch && matchesCategory;
+      const matchesCity = !cityFilter.trim() || 
+        profile.city.toLowerCase().includes(cityFilter.toLowerCase());
+      
+      return matchesSearch && matchesCategory && matchesCity;
     });
-  }, [profiles, searchQuery, categoryFilter]);
+  }, [profiles, searchQuery, categoryFilter, cityFilter]);
 
   return (
     <EditorialSection>
@@ -45,6 +49,16 @@ export default function BrowseCompanionsPage() {
             placeholder="Search by name or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <div className="relative w-full md:w-[200px]">
+          <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Filter by city..."
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
             className="pl-10"
           />
         </div>

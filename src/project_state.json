@@ -1,8 +1,10 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
+  "projectStateVersion": 11,
   "summary": "Shift scope to a user-generated companion marketplace where users can create their own profiles, chat freely with matches, and pay a one-time ₹10 fee to create a profile.",
-  "architectural_notes": [],
+  "architectural_notes": [
+    "Monetization decision: use commission-per-booking model with commissionRate = 30% as the active monetization configuration."
+  ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
@@ -133,6 +135,46 @@
         "REQ-18"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-extend-the-companion-profile-data-model-to-include-a-persistent-city-field-and-ensure-all-profile-create-update-flows-admin-and-self-service-store-and-return-this-field",
+      "title": "Extend the companion profile data model to include a persistent `city` field and ensure all profile create/update flows (admin and self-service) store and return this field.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-city-input-field-to-the-admin-profile-editor-form-so-admins-can-set-edit-a-profile-s-city",
+      "title": "Add a City input field to the admin profile editor form so admins can set/edit a profile’s city.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-city-input-field-to-the-self-service-my-companion-profile-page-so-authenticated-non-admin-users-can-set-edit-their-city",
+      "title": "Add a City input field to the self-service \"My Companion Profile\" page so authenticated non-admin users can set/edit their city.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-public-browsing-experience-to-allow-users-to-search-filter-companion-profiles-by-city-in-addition-to-existing-search-and-category-filtering",
+      "title": "Update the public browsing experience to allow users to search/filter companion profiles by city in addition to existing search and category filtering.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-ui-reflects-the-30-commission-setting-by-showing-the-current-commission-rate-from-the-backend-monetization-config-in-the-monetization-settings-page-and-the-earnings-dashboard-page",
+      "title": "Ensure the admin UI reflects the 30% commission setting by showing the current commission rate from the backend monetization config in the Monetization Settings page and the Earnings Dashboard page.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -180,6 +222,32 @@
       "id": "AR-14",
       "summary": "Add a paywall/fee: charge a one-time ₹10 payment to create a user profile.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Integrate a real payment processor (e.g., Stripe) so the one-time ₹10 profile creation fee is actually collected and can be paid out to the owner’s bank account.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Add the ability for users to search/filter companion profiles by city.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Set monetization model to commission-per-booking with a 30% commission rate charged from each booking.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Set the platform monetization configuration to use the commission-per-booking model with a 30% commission rate, so that platform earnings increase by 30% of the booking amount when an admin marks a booking request as completed.",
+      "reqIds": [
+        "REQ-23"
+      ],
       "status": "pending"
     }
   ],

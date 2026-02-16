@@ -24,10 +24,11 @@ export default function AdminMonetizationSettingsPage() {
   useEffect(() => {
     if (config) {
       setSelectedModel(config.model);
-      setCommissionRate(config.commissionRate ? config.commissionRate.toString() : '');
-      setListingFee(config.listingFee ? config.listingFee.toString() : '');
-      setFeaturedPlacementFee(config.featuredPlacementFee ? config.featuredPlacementFee.toString() : '');
-      setLeadFee(config.leadFee ? config.leadFee.toString() : '');
+      // Handle bigint fields properly - check for undefined/null, not truthiness
+      setCommissionRate(config.commissionRate !== undefined ? config.commissionRate.toString() : '');
+      setListingFee(config.listingFee !== undefined ? config.listingFee.toString() : '');
+      setFeaturedPlacementFee(config.featuredPlacementFee !== undefined ? config.featuredPlacementFee.toString() : '');
+      setLeadFee(config.leadFee !== undefined ? config.leadFee.toString() : '');
     }
   }, [config]);
 
@@ -105,7 +106,7 @@ export default function AdminMonetizationSettingsPage() {
                   max="100"
                   value={commissionRate}
                   onChange={(e) => setCommissionRate(e.target.value)}
-                  placeholder="e.g., 15"
+                  placeholder="e.g., 30"
                 />
                 <p className="text-sm text-muted-foreground">
                   Percentage of each completed booking that goes to the platform

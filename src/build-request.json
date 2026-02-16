@@ -1,115 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Enable self-service profile creation with ₹10 one-time fee and free matched messaging",
+  "title": "Set commission-per-booking to 30%",
   "projectName": "Velvet Companions",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-14",
-      "text": "Add a self-service companion profile creation/editing flow for authenticated non-admin users so they can create and manage their own companion profile without using the admin profile editor.",
-      "target": "both",
+      "id": "REQ-23",
+      "text": "Set the platform monetization configuration to use the commission-per-booking model with a 30% commission rate, so that platform earnings increase by 30% of the booking amount when an admin marks a booking request as completed.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages-4"
+          "msg-4"
         ],
         "quotes": [
-          "Yes people should be able to create their own profile"
+          "I want to Charge a commission per booking. i want 30% charge from each booking"
         ]
       },
       "acceptanceCriteria": [
-        "A signed-in (non-admin) user can create a companion profile tied to their Principal without accessing any /admin routes.",
-        "A signed-in (non-admin) user can update their own companion profile fields (display name, description, photo URL, category, languages, and other existing fields as applicable).",
-        "A signed-in (non-admin) user cannot create/edit a companion profile for a different Principal.",
-        "Existing admin profile management (list/edit/status changes) continues to work as-is."
+        "The backend default `activeMonetizationConfig` is `#commission` with `commissionRate = 30` (percent).",
+        "When an admin updates a booking request status to `#completed` and the active model is commission, the platform earnings increase by `(avgPrice * 30) / 100`, where `avgPrice = (priceRange.min + priceRange.max) / 2` for the booked companion profile.",
+        "`getActiveMonetizationConfig()` returns `model = #commission` and `commissionRate = 30` for admins on a fresh deploy (no prior config updates)."
       ]
     },
     {
-      "id": "REQ-15",
-      "text": "Enforce a one-time ₹10 fee to create a companion profile: the first time a Principal creates a companion profile, the backend must require a \"fee confirmation\" input and record ₹10 as platform earnings; subsequent edits by the same Principal must not charge again.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages-4"
-        ],
-        "quotes": [
-          "only to create their profile they should pay 10rupees each"
-        ]
-      },
-      "acceptanceCriteria": [
-        "If a signed-in user has never created a companion profile before, attempting to create one without confirming the fee fails with a clear error message.",
-        "If a signed-in user confirms the fee, the profile is created and platform earnings increase by exactly 10 (rupees) one time for that Principal.",
-        "If the same signed-in user edits their existing profile later, no additional ₹10 is added to platform earnings.",
-        "Admin earnings dashboard continues to show updated platform earnings totals after user-paid profile creation events."
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "text": "Add a user-facing UI to create a companion profile (non-admin) that clearly shows the one-time ₹10 creation fee, collects the required profile fields, and submits to the new self-service backend APIs.",
+      "id": "REQ-24",
+      "text": "Ensure the admin UI reflects the 30% commission setting by showing the current commission rate from the backend monetization config in the Monetization Settings page and the Earnings Dashboard page.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-4"
+          "msg-4"
         ],
         "quotes": [
-          "Yes people should be able to create their own profile",
-          "only to create their profile they should pay 10rupees each"
+          "i want 30% charge from each booking"
         ]
       },
       "acceptanceCriteria": [
-        "There is a non-admin route/page (not under /admin) where signed-in users can create their companion profile.",
-        "The UI includes explicit English text stating: \"One-time fee: ₹10 to create your profile\" before submission.",
-        "The UI blocks submission until required fields are filled, and shows backend errors using the existing error formatting/toast patterns.",
-        "After successful creation, the user is routed to a sensible page (e.g., their profile view) and relevant React Query caches are invalidated so browse/profile pages reflect the new profile."
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "text": "Implement free in-app messaging between matched users, where messaging access is only granted to users who have a valid match relationship, and sending/reading messages does not create any fees or modify platform earnings.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages-4"
-        ],
-        "quotes": [
-          "chat must be free for all matches of people's"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The backend has persistent message storage and APIs to send and list messages for a conversation, with authorization checks so only matched participants can access the conversation.",
-        "The frontend has a basic inbox/conversation UI that allows matched users to view message history and send new messages.",
-        "No backend code path for messaging increments platform earnings or depends on monetization configuration.",
-        "If two users are not matched, attempts to open a conversation or send a message are rejected with a clear English error."
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "text": "Define and implement what constitutes a \"match\" for messaging access using existing domain objects, and expose backend query APIs for the frontend to determine which conversations a user is allowed to access.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages-4"
-        ],
-        "quotes": [
-          "matches of people's"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The backend defines a deterministic match rule based on existing stored data (e.g., derived from booking requests/statuses) and enforces it consistently for messaging authorization.",
-        "The frontend can fetch and display a list of allowed conversations (or allowed matched counterparts) for the signed-in user.",
-        "Messaging UI only shows/permits conversations that the backend authorizes for the caller."
+        "On the Admin Monetization Settings page, when the active model is Commission, the Commission Rate input is pre-filled with the backend value (30 on a fresh deploy).",
+        "On the Admin Earnings Dashboard page, when the active model is Commission, the label shows \"30% per booking\" (or the current configured percent if changed later)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; only add backend/migration.mo if upgrading stable state requires it.",
-    "Do not edit files under frontend/src/components/ui, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx (immutable paths). Compose new components/pages instead.",
-    "Use English for all user-facing UI text.",
-    "Do not introduce third-party authentication providers; Internet Identity remains the only auth method."
+    "Keep all Motoko backend logic within the existing single actor in backend/main.mo.",
+    "Do not modify files under frontend/src/components/ui or any frontend immutable paths listed in SYSTEM_CONTEXT.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Implementing real payment processing for ₹10 (e.g., UPI/Stripe/credit cards) or integrating external payment gateways.",
-    "Real-time chat via WebSockets/Socket.io/push notifications; messaging may be implemented via standard request/response with polling or manual refresh.",
-    "Adding location services (GPS/maps) or social media integrations."
+    "Integrating real payment processing or collecting actual commission payments.",
+    "Adding new monetization models beyond those already implemented.",
+    "Changing booking request workflow or statuses beyond applying the configured commission rate."
   ],
   "imageRequirements": {
     "required": [],

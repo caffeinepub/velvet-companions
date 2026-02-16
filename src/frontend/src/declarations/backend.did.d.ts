@@ -44,6 +44,7 @@ export interface Profile {
   'status' : Status__1,
   'principal' : Principal,
   'displayName' : string,
+  'city' : string,
   'languages' : Array<string>,
   'ratings' : Rating,
   'description' : string,

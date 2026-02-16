@@ -122,6 +122,7 @@ export interface Profile {
     status: Status__1;
     principal: Principal;
     displayName: string;
+    city: string;
     languages: Array<string>;
     ratings: Rating;
     description: string;
@@ -592,6 +593,7 @@ function from_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uin
     status: _Status__1;
     principal: Principal;
     displayName: string;
+    city: string;
     languages: Array<string>;
     ratings: _Rating;
     description: string;
@@ -606,6 +608,7 @@ function from_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uin
     status: Status__1;
     principal: Principal;
     displayName: string;
+    city: string;
     languages: Array<string>;
     ratings: Rating;
     description: string;
@@ -621,6 +624,7 @@ function from_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uin
         status: from_candid_Status__1_n15(_uploadFile, _downloadFile, value.status),
         principal: value.principal,
         displayName: value.displayName,
+        city: value.city,
         languages: value.languages,
         ratings: value.ratings,
         description: value.description,
@@ -931,6 +935,7 @@ function to_candid_record_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
     status: Status__1;
     principal: Principal;
     displayName: string;
+    city: string;
     languages: Array<string>;
     ratings: Rating;
     description: string;
@@ -945,6 +950,7 @@ function to_candid_record_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
     status: _Status__1;
     principal: Principal;
     displayName: string;
+    city: string;
     languages: Array<string>;
     ratings: _Rating;
     description: string;
@@ -960,6 +966,7 @@ function to_candid_record_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
         status: to_candid_Status__1_n1(_uploadFile, _downloadFile, value.status),
         principal: value.principal,
         displayName: value.displayName,
+        city: value.city,
         languages: value.languages,
         ratings: value.ratings,
         description: value.description,

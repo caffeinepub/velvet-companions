@@ -117,22 +117,22 @@ export default function AdminEarningsPage() {
                 <Badge variant={getModelBadgeVariant(config?.model || Model.none)} className="text-base">
                   {getModelLabel(config?.model || Model.none)}
                 </Badge>
-                {config?.model === Model.commission && config.commissionRate && (
+                {config?.model === Model.commission && config.commissionRate !== undefined && (
                   <span className="text-sm text-muted-foreground">
                     {config.commissionRate.toString()}% per booking
                   </span>
                 )}
-                {config?.model === Model.listingFee && config.listingFee && (
+                {config?.model === Model.listingFee && config.listingFee !== undefined && (
                   <span className="text-sm text-muted-foreground">
                     {formatCurrency(config.listingFee)} per listing
                   </span>
                 )}
-                {config?.model === Model.leadFee && config.leadFee && (
+                {config?.model === Model.leadFee && config.leadFee !== undefined && (
                   <span className="text-sm text-muted-foreground">
                     {formatCurrency(config.leadFee)} per lead
                   </span>
                 )}
-                {config?.model === Model.featuredPlacement && config.featuredPlacementFee && (
+                {config?.model === Model.featuredPlacement && config.featuredPlacementFee !== undefined && (
                   <span className="text-sm text-muted-foreground">
                     {formatCurrency(config.featuredPlacementFee)} per feature
                   </span>

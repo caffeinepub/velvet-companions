@@ -27,6 +27,7 @@ export default function AdminProfileEditorPage() {
   const [photoUrl, setPhotoUrl] = useState('');
   const [category, setCategory] = useState('');
   const [languages, setLanguages] = useState('');
+  const [city, setCity] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive' | 'review'>('review');
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function AdminProfileEditorPage() {
       setPhotoUrl(existingProfile.photoUrl);
       setCategory(existingProfile.category);
       setLanguages(existingProfile.languages.join(', '));
+      setCity(existingProfile.city || '');
       
       if (existingProfile.status === Status__1.active) setStatus('active');
       else if (existingProfile.status === Status__1.inactive) setStatus('inactive');
@@ -46,7 +48,7 @@ export default function AdminProfileEditorPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!displayName.trim() || !description.trim() || !photoUrl.trim() || !category.trim()) {
+    if (!displayName.trim() || !description.trim() || !photoUrl.trim() || !category.trim() || !city.trim()) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -70,6 +72,7 @@ export default function AdminProfileEditorPage() {
       photoUrl: photoUrl.trim(),
       status: statusObj,
       category: category.trim(),
+      city: city.trim(),
       priceRange: existingProfile?.priceRange || { min: BigInt(0), max: BigInt(0) },
       languages: languageArray,
       ratings: existingProfile?.ratings || {
@@ -140,6 +143,17 @@ export default function AdminProfileEditorPage() {
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               placeholder="e.g., Elite Companion, Travel Companion"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="city">City *</Label>
+            <Input
+              id="city"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="e.g., Mumbai, Delhi, Bangalore"
               required
             />
           </div>
