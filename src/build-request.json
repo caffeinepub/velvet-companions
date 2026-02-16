@@ -1,0 +1,164 @@
+{
+  "kind": "build_request",
+  "title": "Adult companionship directory & booking website/app (Playboy-style aesthetic)",
+  "projectName": "Velvet Companions",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Implement Internet Identity sign-in and basic user roles (guest, signed-in user, admin) to control access to creating/editing companion profiles and reviewing booking requests.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "I wanna create app and website for Playboy gigolo escorts so create like that"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Users can sign in and sign out using Internet Identity.",
+        "Unauthenticated users can browse public pages but cannot create or submit bookings if the product requires sign-in (define which actions require sign-in and enforce consistently).",
+        "An admin role exists and can be granted by a backend-maintained allowlist of principals.",
+        "Admin-only UI actions are hidden/disabled for non-admin users and are enforced on the backend as well."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Create public-facing pages to browse and view individual companion profiles in a luxury magazine-inspired style (strictly non-explicit, adult-oriented branding only).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "I wanna create app and website for Playboy gigolo escorts so create like that"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A home/landing page exists with a clear brand presentation and a call-to-action to browse companions.",
+        "A browse/search page lists companions with photo, display name, location, and headline tagline.",
+        "A profile detail page shows gallery image(s), bio, services offered (worded as legal companionship categories), and availability overview.",
+        "All user-facing text is in English.",
+        "No explicit sexual content or pornography is displayed; copy is framed as legal adult companionship."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add companion profile management (create, edit, publish/unpublish) for authenticated admins, including moderation controls to remove or hide profiles.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can create a companion profile with fields: display name, headline, bio, location, age (18+), photos (URLs or uploaded static assets), tags/categories, and status (published/unpublished).",
+        "Published profiles appear on public browse pages; unpublished profiles do not.",
+        "Admin can edit and delete profiles.",
+        "Backend validates required fields and enforces 18+ requirement on stored profiles."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Implement a booking request flow where users can submit a request to a selected companion; admins can review, accept/reject, and track status (no real-time chat).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "From a companion profile page, a user can open a booking request form capturing: preferred date/time, duration, location/city, and a free-text note.",
+        "Submitting creates a booking request with a status lifecycle (e.g., pending/accepted/rejected/cancelled).",
+        "Admin can view a list of booking requests, filter by status, and open a detail view.",
+        "Admin can accept or reject a request; status updates are persisted and reflected in the UI.",
+        "No WebSockets or real-time messaging is included; communication is handled via status updates and optional contact instructions text."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add legal/compliance UX: age gate, Terms/Disclaimer page, and clear “18+ only” indicators throughout the app.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "First-time visitors are shown an age gate (confirm 18+) before viewing profiles; the choice is remembered locally.",
+        "A dedicated Terms/Disclaimer page exists with non-explicit language (adult companionship, legality varies, no solicitation of illegal services).",
+        "Primary navigation/footer includes links to Terms/Disclaimer and Privacy basics.",
+        "Profile pages display an “18+ only” notice."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Define and apply a coherent visual theme consistent across all pages: a black/cream/gold luxury editorial aesthetic with strong typography, high-contrast layout, and “magazine spread” components.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A consistent color palette and typography scale is used across the app.",
+        "Buttons, cards, forms, and navigation follow the same styling rules across pages.",
+        "The UI avoids default template look and feels intentionally branded without using blue/purple as primary colors."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Persist all core data in the Motoko backend (profiles, booking requests, admin allowlist) with stable query/update APIs suitable for React Query usage.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes query methods for listing published profiles and fetching a profile by id.",
+        "Backend exposes admin-only update methods for creating/updating/publishing/deleting profiles.",
+        "Backend exposes update methods for creating booking requests and admin-only methods for updating booking status.",
+        "All authorization checks are enforced in backend methods (principal-based)."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Generate and include required static brand assets (logo + hero background) and render them in the UI from frontend/public/assets/generated (no backend image serving).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Generated images are added under frontend/public/assets/generated with the specified filenames.",
+        "Landing page uses the hero background image in a performant way (responsive, cropped appropriately).",
+        "Brand logo is shown in header/navigation and optionally in the footer."
+      ]
+    }
+  ],
+  "constraints": [
+    "Use only the provided stack: Motoko single-actor backend and React + TypeScript + Tailwind + Shadcn + React Query frontend.",
+    "Do not edit files in frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui (compose instead).",
+    "No WebSockets/real-time chat; implement non-real-time flows only.",
+    "No third-party authentication providers; only Internet Identity.",
+    "All user-facing text must be in English.",
+    "Keep content non-explicit and include 18+ gating and disclaimers; do not add pornographic or explicit sexual content."
+  ],
+  "nonGoals": [
+    "Payment processing (e.g., Stripe) unless explicitly requested later.",
+    "Location maps/GPS features.",
+    "Third-party messaging/SMS/email integration.",
+    "User-to-user real-time chat.",
+    "Explicit adult content or pornography."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Minimal luxury wordmark logo, black/cream/gold, serif typography (logo-wordmark.dim_512x192.png)",
+      "High-contrast editorial hero background texture/pattern, dark with subtle gold accents (hero-background.dim_1920x1080.png)"
+    ],
+    "edits": []
+  }
+}

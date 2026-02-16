@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Build an app and website for a Playboy-style gigolo escort service.",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Minimal luxury wordmark logo, black/cream/gold, serif typography (logo-wordmark.dim_512x192.png)\n- High-contrast editorial hero background texture/pattern, dark with subtle gold accents (hero-background.dim_1920x1080.png)",
+  "existing_features": [
+    {
+      "id": "feature-implement-internet-identity-sign-in-and-basic-user-roles-guest-signed-in-user-admin-to-control-access-to-creating-editing-companion-profiles-and-reviewing-booking-requests",
+      "title": "Implement Internet Identity sign-in and basic user roles (guest, signed-in user, admin) to control access to creating/editing companion profiles and reviewing booking requests.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-public-facing-pages-to-browse-and-view-individual-companion-profiles-in-a-luxury-magazine-inspired-style-strictly-non-explicit-adult-oriented-branding-only",
+      "title": "Create public-facing pages to browse and view individual companion profiles in a luxury magazine-inspired style (strictly non-explicit, adult-oriented branding only).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-companion-profile-management-create-edit-publish-unpublish-for-authenticated-admins-including-moderation-controls-to-remove-or-hide-profiles",
+      "title": "Add companion profile management (create, edit, publish/unpublish) for authenticated admins, including moderation controls to remove or hide profiles.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-booking-request-flow-where-users-can-submit-a-request-to-a-selected-companion-admins-can-review-accept-reject-and-track-status-no-real-time-chat",
+      "title": "Implement a booking request flow where users can submit a request to a selected companion; admins can review, accept/reject, and track status (no real-time chat).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-legal-compliance-ux-age-gate-terms-disclaimer-page-and-clear-18-only-indicators-throughout-the-app",
+      "title": "Add legal/compliance UX: age gate, Terms/Disclaimer page, and clear “18+ only” indicators throughout the app.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-define-and-apply-a-coherent-visual-theme-consistent-across-all-pages-a-black-cream-gold-luxury-editorial-aesthetic-with-strong-typography-high-contrast-layout-and-magazine-spread-components",
+      "title": "Define and apply a coherent visual theme consistent across all pages: a black/cream/gold luxury editorial aesthetic with strong typography, high-contrast layout, and “magazine spread” components.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-include-required-static-brand-assets-logo-hero-background-and-render-them-in-the-ui-from-frontend-public-assets-generated-no-backend-image-serving",
+      "title": "Generate and include required static brand assets (logo + hero background) and render them in the UI from frontend/public/assets/generated (no backend image serving).",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Create an app and website for a gigolo escort service (Playboy-style).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Persist all core data in the Motoko backend (profiles, booking requests, admin allowlist) with stable query/update APIs suitable for React Query usage.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Velvet Companions",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

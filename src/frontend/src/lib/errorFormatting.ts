@@ -1,0 +1,22 @@
+export function formatError(error: unknown): string {
+  if (error instanceof Error) {
+    const message = error.message;
+    
+    // Handle authorization errors
+    if (message.includes('Unauthorized')) {
+      return 'You do not have permission to perform this action.';
+    }
+    
+    if (message.includes('not found')) {
+      return 'The requested item could not be found.';
+    }
+    
+    if (message.includes('already exists')) {
+      return 'This item already exists.';
+    }
+    
+    return message;
+  }
+  
+  return 'An unexpected error occurred. Please try again.';
+}
